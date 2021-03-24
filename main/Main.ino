@@ -27,7 +27,15 @@ License (MIT license):
 //WiFiServer wifiServer(80);
 
 
-void setup() {
+void setup()
+{
+  EEPROM.begin(512);
+  WiFi.macAddress(_myMac);
+  
+  if (!checkFlash())
+    reboot(true);
+    
+  WiFi.softAP("1234", WIFI_AP_PASSWORD);
 /*
   SYSTEM INFO
 */
@@ -79,6 +87,63 @@ void setup() {
 
 
 // the loop function runs over and over again forever
-void loop() {
+void loop()
+{
 
+}
+
+/*
+ * Flash default format
+ * 
+ * [MAC][MODE]
+ * 
+ * MAC[6] - WiFi MAC address
+ * MODE[1] - Access Point / Client (default - WIFI_OPERATION_MODE_AP)
+*/
+bool checkFlash(void)
+{
+  /*
+    Chech 6 first bytes of flash, if is different than expected means it is a brand new module, than 
+    a default envirolnment will be writed.
+  */
+  if (EEPROM.read(0) != _myMac[0] || EEPROM.read(1) != _myMac[1] || EEPROM.read(2) != _myMac[2] || 
+      EEPROM.read(3) != _myMac[3] || EEPROM.read(4) != _myMac[4] || EEPROM.read(5) != _myMac[5]) {
+        
+#if SERIAL_DEBUG
+    Serial.println("Wrong flash format, formatting...");
+#endif
+    EEPROM.write(0, _myMac[0]);
+    EEPROM.write(1, _myMac[1]);
+    EEPROM.write(2, _myMac[2]);
+    EEPROM.write(3, _myMac[3]);
+    EEPROM.write(4, _myMac[4]);
+    EEPROM.write(5, _myMac[5]);
+    EEPROM.write(6, WIFI_OPERATION_MODE_AP);
+  
+    for (int i = 0 ; i < 512; i++)
+      EEPROM.write(i, 0x00);
+    
+    if (EEPROM.commit()) {
+#if SERIAL_DEBUG
+      Serial.println("Flash formatted successfully");
+#endif
+    } else {
+#if SERIAL_DEBUG
+      Serial.println("ERROR Formatting flash");
+#endif
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void reboot(bool critical = false)
+{
+#if SERIAL_DEBUG 
+  if (critical)
+    Serial.print("[CRITICAL] ");
+  Serial.println("System reboot requested");
+#endif
+  ESP.restart(); 
 }

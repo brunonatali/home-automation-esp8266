@@ -57,19 +57,43 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 
 #include <Arduino.h>
 
+// Flash
+#include <EEPROM.h>
+
+// WiFi
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+
+// Interactions
+#include <ESP8266WebServer.h>
+
+
+// Personal LIBs
 #include "TouchButtonModule.h"
 
-#ifndef ESP8266WiFi_h
-#define ESP8266WiFi_h
-#include "ESP8266WiFi.h"
-#endif
+// WiFi MODES
+/*
+  Access Point mode
+*/
+#define WIFI_OPERATION_MODE_AP 0x10
 
-#ifndef WifiCredentials_h
-#define WifiCredentials_h
-#include "WifiCredentials.h"
-#endif
+/*
+  WiFi client mode
+*/
+#define WIFI_OPERATION_MODE_CLIENT 0x11
+
+// PASSWORDS
+/*
+  Access Point default password
+*/
+#define WIFI_AP_PASSWORD "semsenha"
 
 /*
   Stores button`s class handler
 */
 TouchButtonModule *_touchButton[6];
+
+/*
+  MAC Address
+*/
+byte _myMac[6];
