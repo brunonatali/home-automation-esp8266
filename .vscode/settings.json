@@ -1,0 +1,22 @@
+{
+    "files.associations": {
+        "*.php": "php",
+        "random": "cpp",
+        "array": "cpp",
+        "deque": "cpp",
+        "map": "cpp",
+        "unordered_map": "cpp",
+        "vector": "cpp",
+        "xstring": "cpp",
+        "ostream": "cpp",
+        "*.tcc": "cpp",
+        "system_error": "cpp",
+        "xfunctional": "cpp",
+        "xlocmon": "cpp",
+        "xtr1common": "cpp",
+        "functional": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp"
+    }
+}

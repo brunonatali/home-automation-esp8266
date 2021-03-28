@@ -37,7 +37,7 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 /*
   Enable/disable serial debug
 */
-#define SERIAL_DEBUG true
+#define SERIAL_DEBUG 1
 
 /*
   Enable ALL libs debug
@@ -56,6 +56,7 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 ////////////////////////
 
 #include <Arduino.h>
+#include <string.h>
 
 // Flash
 #include <EEPROM.h>
@@ -70,23 +71,28 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 
 // Personal LIBs
 #include "TouchButtonModule.h"
+#include "CRC32.h"
 
 // WiFi MODES
 /*
   Access Point mode
 */
-#define WIFI_OPERATION_MODE_AP 0x10
+#define WIFI_OPERATION_MODE_AP 0
 
 /*
   WiFi client mode
 */
-#define WIFI_OPERATION_MODE_CLIENT 0x11
+#define WIFI_OPERATION_MODE_CLIENT 1
 
-// PASSWORDS
 /*
   Access Point default password
 */
 #define WIFI_AP_PASSWORD "semsenha"
+
+/*
+  Access Point default SSID prepend
+*/
+#define WIFI_AP_SSID "BN_"
 
 /*
   Stores button`s class handler
@@ -96,4 +102,40 @@ TouchButtonModule *_touchButton[6];
 /*
   MAC Address
 */
-byte _myMac[6];
+uint8_t _myMac[6];
+
+
+////////////////////////
+//////////////////////// FUNCTIONS
+////////////////////////
+
+bool setSsid(String *ssid, bool setCrc = true);
+
+bool setPassword(String *pass, bool setCrc = true);
+
+/*
+  Reboot system
+  @var bool critical specify that reboot root cause is something critical
+*/
+void reboot(bool critical = false);
+
+/*
+  Check flash integrity & format if needed
+*/
+bool checkFlash(void);
+
+/**
+ * \brief Callculate fash contet CRC32
+ * \param partition (1/2) 
+ * \return crc32
+*/
+uint32_t calcFlashCrc(unsigned char partition);
+
+
+void uInt2Char(uint8_t (&buf)[4], uint32_t value);
+
+
+uint32_t char2UInt(const uint8_t (&buf)[4]);
+
+
+bool setFlashCrc(uint8_t partition);
