@@ -24,8 +24,12 @@ License (MIT license):
 */
 #include "Main.h"
 
-const char *ssid[100] = {0};
-const char *password = WIFI_AP_PASSWORD;
+//uint8_t *generalBuffer[100] = {0x00};
+
+
+String ssid;
+
+String wifiPass;
 
 ESP8266WebServer server(80);
 
@@ -38,8 +42,6 @@ void handleRoot() {
 
 void setup()
 {
-  EEPROM.begin(512);
-  
 /*
   SYSTEM INFO
 */
@@ -58,14 +60,14 @@ void setup()
   Serial.println(system_get_vdd33());
 #endif
 
+  _flash = new FlashMan();
+
   WiFi.macAddress(_myMac);
   
-  if (!checkFlash())
-    reboot(true);
-
-  //String wifiMacString = ;
+  //if (!checkFlash())
+  //  reboot(true);
     
-  WiFi.softAP(wifiMacString, password);
+  WiFi.softAP(_flash->getSsid(), _flash->getWifiPass());
   IPAddress myIP = WiFi.softAPIP();
 
   Serial.print("AP IP address: ");
@@ -112,52 +114,6 @@ void loop()
   server.handleClient();
 }
 
-/*
- * Flash default format
- * 
- * [MAC][MODE]
- * 
- * MAC[6] - WiFi MAC address
- * MODE[1] - Access Point / Client (default - WIFI_OPERATION_MODE_AP)
-*/
-bool checkFlash(void)
-{
-  bool isPartitionOk_1 = calcFlashCrc(1) == getFlashCrc(1);
-  bool isPartitionOk_2 = calcFlashCrc(2) == getFlashCrc(2);
-  
-  if (!isPartitionOk_1 && !isPartitionOk_2) {
-#if SERIAL_DEBUG
-    Serial.println("Wrong flash format, formatting...");
-#endif
-    uint8_t boolConfigs = 0;
-    bitWrite(boolConfigs, 0, WIFI_OPERATION_MODE_AP);
-    bitWrite(boolConfigs, 1, SERIAL_DEBUG);
-    EEPROM.write(0, boolConfigs);
-
-
-    String defaultSsid = WIFI_AP_SSID + WiFi.macAddress();
-    setSsid(&defaultSsid, false);
-
-    String defaultPassword = WIFI_AP_PASSWORD;
-    setPassword(&defaultPassword, false);
-  
-    for (int i = 7 ; i < 512 ; i++)
-      EEPROM.write(i, 0x00);
-    
-    if (EEPROM.commit()) {
-#if SERIAL_DEBUG
-      Serial.println("Flash formatted successfully");
-#endif
-    } else {
-#if SERIAL_DEBUG
-      Serial.println("ERROR Formatting flash");
-#endif
-      return false;
-    }
-  }
-
-  return true;
-}
 
 void reboot(bool critical)
 {
@@ -169,83 +125,7 @@ void reboot(bool critical)
   ESP.restart(); 
 }
 
-String *getSsid()
-{
-
-}
-
-/**
- * Primary SSID is stored in EEPROM on address bettwen 50 - 149
- * Backup SSID is stored from 250 to 349
-*/
-bool setSsid(String *ssid, bool setCrc)
-{
-  int ssidLen = ssid->length() + 50;
-  for (int i = 50 ; i < 150 ; i++) {
-    if (i < ssidLen)
-      EEPROM.write(i, ssid->charAt(i));
-    else
-      EEPROM.write(i, 0x00);
-  }
-
-  if (!EEPROM.commit())
-    return false;
-  if (setCrc && !setFlashCrc(1))
-    return false;
-    
-  for (int i = 250 ; i < 350 ; i++) {
-    if (i < ssidLen)
-      EEPROM.write(i, ssid->charAt(i));
-    else
-      EEPROM.write(i, 0x00);
-  }
-
-  if (setCrc) {
-    if (!EEPROM.commit() || !setFlashCrc(2))
-      return false;
-    else
-      return true;
-  }
-
-  return EEPROM.commit();
-}
-
-/**
- * Primary password is stored in EEPROM on address bettwen 150 - 249
- * Backup password is stored from 350 to 449
-*/
-bool setPassword(String *pass, bool setCrc)
-{
-  int passLen = pass->length() + 150;
-  for (int i = 150 ; i < 250 ; i++) {
-    if (i < passLen)
-      EEPROM.write(i, pass->charAt(i));
-    else
-      EEPROM.write(i, 0x00);
-  }
-
-  if (!EEPROM.commit())
-    return false;
-  if (setCrc && !setFlashCrc(1))
-    return false;
-
-  for (int i = 350 ; i < 450 ; i++) {
-    if (i < passLen)
-      EEPROM.write(i, pass->charAt(i));
-    else
-      EEPROM.write(i, 0x00);
-  }
-
-  if (setCrc) {
-    if (!EEPROM.commit() || !setFlashCrc(2))
-      return false;
-    else
-      return true;
-  }
-
-  return EEPROM.commit();
-}
-
+/*
 bool calcCrcFlash(unsigned char partition)
 {
   unsigned int crcLimit = 504;
@@ -270,78 +150,9 @@ bool calcCrcFlash(unsigned char partition)
     crcCounter ++;
   }
 }
+*/
 
-uint32_t calcFlashCrc(uint8_t partition)
-{
-  uint8_t content[250];
-  uint16_t flashCounter;
 
-  if (partition == 1)
-    flashCounter = 0;
-  else if (partition == 2)
-    flashCounter = 250;
-  else
-    return 0;
 
-  for (uint8_t i = 0 ; i < 250 ; i++, flashCounter++)
-    content[i] = EEPROM.read(flashCounter);
 
-  return CRC32::calculate(content, 250);
-}
 
-uint32_t getFlashCrc(uint8_t partition)
-{
-  uint8_t crcContent[4];
-  uint16_t flashCounter;
-
-  if (partition == 1)
-    flashCounter = 504;
-  else if (partition == 2)
-    flashCounter = 508;
-  else
-    return 0;
-
-  for (uint8_t i = 0 ; i < 4 ; i++, flashCounter++)
-    crcContent[i] = EEPROM.read(flashCounter);
-
-  return char2UInt(crcContent);
-}
-
-void uInt2Char(uint8_t (&buf)[4], uint32_t value)
-{
-  buf[0] = value;
-  buf[1] = value >> 8;
-  buf[2] = value >> 16;
-  buf[3] = value >> 24;
-}
-
-uint32_t char2UInt(const uint8_t (&buf)[4])
-{
-    uint32_t u0 = buf[0], u1 = buf[1], u2 = buf[2], u3 = buf[3];
-    uint32_t uval = u0 | (u1 << 8) | (u2 << 16) | (u3 << 24);
-    return uval;
-}
-
-bool setFlashCrc(uint8_t partition)
-{
-  uint16_t flashCounter;
-  uint8_t flashCrc[4];
-
-  if (partition == 1)
-    flashCounter = 504;
-  else if (partition == 2)
-    flashCounter = 508;
-  else
-    return 0;
-
-  uint32_t crc = calcFlashCrc(partition);
-  if (!crc)
-    return false;
-
-  uInt2Char(flashCrc, crc);
-
-  for (uint8_t i = 0 ; i < 4 ; i++, flashCounter++)
-    EEPROM.write(flashCounter, flashCrc[i]);
-
-  return EEPROM.commit();
-}

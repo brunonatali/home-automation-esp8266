@@ -37,7 +37,9 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 /*
   Enable/disable serial debug
 */
+#ifndef SERIAL_DEBUG
 #define SERIAL_DEBUG 1
+#endif
 
 /*
   Enable ALL libs debug
@@ -58,9 +60,6 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 #include <Arduino.h>
 #include <string.h>
 
-// Flash
-#include <EEPROM.h>
-
 // WiFi
 #include <ESP8266WiFi.h>
 #include <WiFiClient.h>
@@ -71,33 +70,18 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 
 // Personal LIBs
 #include "TouchButtonModule.h"
-#include "CRC32.h"
+#include "FlashMan.h"
 
-// WiFi MODES
-/*
-  Access Point mode
-*/
-#define WIFI_OPERATION_MODE_AP 0
-
-/*
-  WiFi client mode
-*/
-#define WIFI_OPERATION_MODE_CLIENT 1
-
-/*
-  Access Point default password
-*/
-#define WIFI_AP_PASSWORD "semsenha"
-
-/*
-  Access Point default SSID prepend
-*/
-#define WIFI_AP_SSID "BN_"
 
 /*
   Stores button`s class handler
 */
 TouchButtonModule *_touchButton[6];
+
+/**
+ * 
+*/
+FlashMan *_flash;
 
 /*
   MAC Address
@@ -109,9 +93,13 @@ uint8_t _myMac[6];
 //////////////////////// FUNCTIONS
 ////////////////////////
 
-bool setSsid(String *ssid, bool setCrc = true);
+bool setSsid(String ssid, bool setCrc = true);
 
-bool setPassword(String *pass, bool setCrc = true);
+String getSsid(void);
+
+bool setWifiPassword(String *pass, bool setCrc = true);
+
+String getWifiPassword(void);
 
 /*
   Reboot system
