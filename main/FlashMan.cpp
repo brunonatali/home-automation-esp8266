@@ -31,6 +31,8 @@ FlashMan::FlashMan()
     Serial.println("Starting Flash");
 #endif
 
+  boolConfigs = 0x00;
+
   EEPROM.begin(512);
 
   bool isPartitionOk_1 = FlashMan::calcFlashCrc(1) == FlashMan::getFlashCrc(1);
@@ -40,13 +42,38 @@ FlashMan::FlashMan()
 
 #if SERIAL_DEBUG
     Serial.println("Wrong Flash format, formatting...");
+    Serial.print("\t-WiFi mode: ");
 #endif
-    uint8_t boolConfigs = 0;
-    bitWrite(boolConfigs, 0, WIFI_OPERATION_MODE_AP);
-    //bitWrite(boolConfigs, 1, SERIAL_DEBUG);
-    EEPROM.write(0, boolConfigs);
+    bool wifiModeResult = FlashMan::setWifiMode(WIFI_OPERATION_MODE_AP, false);
 #if SERIAL_DEBUG
-    Serial.println("\t-Bool configs: OK");
+    if (wifiModeResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
+    Serial.println("\t-Button logic level -> ");
+#endif
+    bool btnLogicLevelResult = FlashMan::setButtonLogicLevel(BUTTON_DEFAULT_LEVEL, false);
+#if SERIAL_DEBUG
+    if (btnLogicLevelResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
+    Serial.println("\t-Button Hold TO -> ");
+#endif
+    bool btnHoldTOResult = FlashMan::setButtonHoldTO(BUTTON_HOLD_TIMEOUT, false);
+#if SERIAL_DEBUG
+    if (btnHoldTOResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
+    Serial.println("\t-Button Hold Period -> ");
+#endif
+    bool btnHoldPeriodResult = FlashMan::setButtonHoldPeriod(BUTTON_HOLD_PERIOD, false);
+#if SERIAL_DEBUG
+    if (btnHoldPeriodResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
     Serial.println("\t-WiFi SSID -> ");
 #endif
     bool wifiSsidResult = FlashMan::setSsid(WIFI_AP_SSID + WiFi.macAddress(), false);
@@ -65,6 +92,8 @@ FlashMan::FlashMan()
       Serial.println("ERROR");
 #endif
     if (EEPROM.commit()) {
+      // if (FlashMan::setFlashCrc(1) && FlashMan::setFlashCrc(2))
+
 #if SERIAL_DEBUG
       Serial.println("Flash formatted successfully");
 #endif
@@ -73,8 +102,21 @@ FlashMan::FlashMan()
       Serial.println("ERROR Formatting flash");
 #endif
     }
+  } else { // Perform a partition recovery
+    if (!isPartitionOk_1) 
+      FlashMan::copyFlashPartition(2);
+    else if (!isPartitionOk_2)
+      FlashMan::copyFlashPartition(1);
+
+    // Load values to variables
+    this->getButtonHoldTO(true);
+    this->getButtonHoldPeriod(true);
+    this->getWifiMode(true);
+    this->getButtonLogicLevel(true);
   }
 }
+
+
 
 bool FlashMan::setSsid(String ssid, bool setCrc)
 {
@@ -104,16 +146,188 @@ bool FlashMan::setWifiPassword(String pass, bool setCrc)
   return false;
 }
 
+bool FlashMan::setButtonHoldTO(uint8_t seconds, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setButtonHoldTO: ");
+#endif
+
+  if (FlashMan::writeByte(seconds, 1, 251, setCrc)) {
+    this->btnHoldTimeOut = seconds;
+    return true;
+  }
+
+  return false;
+}
+
+bool FlashMan::setButtonHoldPeriod(uint8_t seconds, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setButtonHoldPeriod: ");
+#endif
+
+  if (FlashMan::writeByte(seconds, 2, 252, setCrc)) {
+    this->btnHoldPeriod = seconds;
+    return true;
+  }
+
+  return false;
+}
+
+bool FlashMan::setWifiMode(uint8_t mode, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setWifiMode: ");
+#endif
+
+  if (mode != WIFI_OPERATION_MODE_AP && mode != WIFI_OPERATION_MODE_CLIENT)
+    return false;
+
+  if (FlashMan::writeBit(&this->boolConfigs, mode, 0, 0, 250, setCrc)) {
+    this->wifiMode = mode;
+    return true;
+  }
+
+  return false;
+  
+}
+
+bool FlashMan::setButtonLogicLevel(uint8_t level, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setButtonLogicLevel: ");
+#endif
+
+  if (level != HIGH && level != LOW)
+    return false;
+
+  if (FlashMan::writeBit(&this->boolConfigs, level, 1, 0, 250, setCrc)) {
+    this->btnLogicLevel = level;
+    return true;
+  }
+
+  return false;
+  
+}
+
+bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setButtonLightMode: ");
+#endif
+
+  if (button > 6 || (mode > 6 && (mode != 0xFE && mode != 0xFF))) {
+#if SERIAL_DEBUG
+    Serial.print("ERROR ");
+    Serial.print(button);
+    Serial.print("-");
+    Serial.println(mode, HEX);
+#endif
+    return false;
+  }
+
+  if (FlashMan::writeByte(mode, 4 + button, 254 + button, setCrc)) {
+    this->btnMode[button - 1] = mode;
+    return true;
+  }
+
+  return false;
+}
+
+bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("setButtonLightMode: ");
+#endif
+
+  if (button > 6) {
+#if SERIAL_DEBUG
+    Serial.print("ERROR ");
+    Serial.print(button);
+    Serial.print("-");
+    Serial.println(value, HEX);
+#endif
+    return false;
+  }
+
+  if (FlashMan::writeByte(value, 10 + button, 260 + button, setCrc)) {
+    this->btnDimmer[button - 1] = value;
+    return true;
+  }
+
+  return false;
+}
+
+
 
 String FlashMan::getSsid(void)
 {
+  if (this->ssid.length() == 0)
+    this->ssid = FlashMan::getString(50, 100);
   return this->ssid;
 }
 
 String FlashMan::getWifiPass(void)
 {
+  if (this->wifiPass.length() == 0)
+    this->wifiPass = FlashMan::getString(150, 100);
   return this->wifiPass;
 }
+
+uint8_t FlashMan::getButtonHoldTO(bool force)
+{
+  if (force)
+    this->btnHoldTimeOut = FlashMan::getByte(1);
+  return this->btnHoldTimeOut;
+}
+
+uint8_t FlashMan::getButtonHoldPeriod(bool force)
+{
+  if (force)
+    this->btnHoldPeriod = FlashMan::getByte(2);
+  return this->btnHoldPeriod;
+}
+
+uint8_t FlashMan::getWifiMode(bool force)
+{
+  if (force) {
+    char byte = FlashMan::getByte(0);
+    this->wifiMode = bitRead(byte, 0);
+  }
+  return this->wifiMode;
+}
+
+uint8_t FlashMan::getButtonLogicLevel(bool force)
+{
+  if (force) {
+    char byte = FlashMan::getByte(0);
+    this->btnLogicLevel = bitRead(byte, 1);
+  }
+  return this->btnLogicLevel;
+}
+
+uint8_t FlashMan::getButtonLightMode(uint8_t button, bool force)
+{
+  if (button > 6)
+    return 0;
+
+  if (force) 
+    this->btnMode[button - 1] = FlashMan::getByte(4 + button);
+    
+  return this->btnMode[button - 1];
+}
+
+uint8_t FlashMan::getButtonDimmer(uint8_t button, bool force)
+{
+  if (button > 6)
+    return 0;
+
+  if (force) 
+    this->btnDimmer[button - 1] = FlashMan::getByte(10 + button);
+    
+  return this->btnDimmer[button - 1];
+}
+
 
 
 bool FlashMan::writeString(String str, int p1Index, int p2Index, const int size, bool setCrc)
@@ -163,6 +377,152 @@ bool FlashMan::writeString(String str, int p1Index, int p2Index, const int size,
 
   if (setCrc) {
     if (!EEPROM.commit() || !FlashMan::setFlashCrc(2))
+      return false;
+    else
+      return true;
+  }
+
+  return EEPROM.commit();
+}
+
+bool FlashMan::writeByte(uint8_t byte, int p1Index, int p2Index, bool setCrc)
+{
+#if SERIAL_DEBUG
+    Serial.print("\tP1=>");
+    Serial.println(byte, HEX);
+    Serial.print("-");
+    Serial.println(p1Index);
+#endif
+
+  EEPROM.write(p1Index, byte);
+
+  if (!EEPROM.commit())
+    return false;
+  if (setCrc && !FlashMan::setFlashCrc(1))
+    return false;
+
+#if SERIAL_DEBUG
+    Serial.print("\tP2=>");
+    Serial.println(byte, HEX);
+    Serial.print("-");
+    Serial.println(p2Index);
+#endif
+
+  EEPROM.write(p2Index, byte);
+
+  if (setCrc) {
+    if (!EEPROM.commit() || !FlashMan::setFlashCrc(2))
+      return false;
+    else
+      return true;
+  }
+
+  return EEPROM.commit();
+}
+
+bool FlashMan::writeBit(uint8_t *boolConfigs, uint8_t bit, uint8_t byteIndex, int p1Index, int p2Index, bool setCrc)
+{
+
+  bitWrite(*boolConfigs, byteIndex, bit);
+
+#if SERIAL_DEBUG
+    Serial.print("\tP1=>");
+    Serial.println(bit);
+    Serial.print("-");
+    Serial.println(byteIndex);
+    Serial.print("-");
+    Serial.println(p1Index);
+#endif
+
+  EEPROM.write(p1Index, *boolConfigs);
+
+  if (!EEPROM.commit())
+    return false;
+  if (setCrc && !FlashMan::setFlashCrc(1))
+    return false;
+
+#if SERIAL_DEBUG
+    Serial.print("\tP2=>");
+    Serial.println(bit);
+    Serial.print("-");
+    Serial.println(byteIndex);
+    Serial.print("-");
+    Serial.println(p2Index);
+#endif
+
+  EEPROM.write(p2Index, *boolConfigs);
+
+  if (setCrc) {
+    if (!EEPROM.commit() || !FlashMan::setFlashCrc(2))
+      return false;
+    else
+      return true;
+  }
+
+  return EEPROM.commit();
+}
+
+
+String FlashMan::getString(int index, uint8_t size)
+{
+#if SERIAL_DEBUG
+  Serial.print("getString(): ");
+#endif
+  uint8_t i;
+  char buff[size];
+  for (i = 0 ; i < size ; i++)
+    buff[i] = 0x00;
+  char flashByte;
+
+  for (i = 0 ; i < size ; i++, index++) {
+    flashByte = EEPROM.read(index);
+    if (!flashByte)
+      break;
+#if SERIAL_DEBUG
+    Serial.print(flashByte);
+#endif
+    buff[i] = flashByte;
+  }
+
+#if SERIAL_DEBUG
+  Serial.print('-');
+  Serial.println(i);
+#endif
+
+  return String(buff);
+}
+
+char FlashMan::getByte(int index)
+{
+#if SERIAL_DEBUG
+  Serial.print("getByte(): ");
+#endif
+
+  char flashByte = EEPROM.read(index);
+
+#if SERIAL_DEBUG
+    Serial.print(flashByte);
+#endif
+
+  return flashByte;
+}
+
+bool FlashMan::copyFlashPartition(uint8_t from, bool setCrc)
+{
+  if (from == 2) {
+    uint16_t n = 250;
+    for (uint8_t i = 0 ; i < 250 ; i++, n++)
+      EEPROM.write(i, EEPROM.read(n));
+  } else if (from == 1) {
+    uint8_t n = 0;
+    for (uint16_t i = 250 ; i < 500 ; i++, n++)
+      EEPROM.write(i, EEPROM.read(n));
+  } else {
+    return false;
+  }
+
+  if (setCrc) {
+    if (!EEPROM.commit() || !FlashMan::setFlashCrc(from == 1 ? 2 : 1))
       return false;
     else
       return true;
@@ -231,34 +591,6 @@ uint32_t FlashMan::getFlashCrc(uint8_t partition)
   return char2UInt(crcContent);
 }
 
-String FlashMan::getString(int index, uint8_t size)
-{
-#if SERIAL_DEBUG
-  Serial.print("getString(): ");
-#endif
-  uint8_t i;
-  char buff[size];
-  for (i = 0 ; i < size ; i++)
-    buff[i] = 0x00;
-  char flashByte;
-
-  for (i = 0 ; i < size ; i++, index++) {
-    flashByte = EEPROM.read(index);
-    if (!flashByte)
-      break;
-#if SERIAL_DEBUG
-    Serial.print(flashByte);
-#endif
-    buff[i] = flashByte;
-  }
-
-#if SERIAL_DEBUG
-  Serial.print('-');
-  Serial.println(i);
-#endif
-
-  return String(buff);
-}
 
 
 

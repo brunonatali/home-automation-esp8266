@@ -1,5 +1,5 @@
 /*
-General bounce effect for IO
+Light on - off manager
 Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
 
 License (MIT license):
@@ -23,50 +23,30 @@ License (MIT license):
 
 */
 
-#ifndef TouchButtonModule_h
-#define TouchButtonModule_h
+#ifndef Lighter_h
+#define Lighter_h
 
 #include <Arduino.h>
 
-#include "BounceEffect.h"
-#include "Lighter.h"
-
-extern "C"{
-#include "user_interface.h"
-}
-
-
-#ifndef TOUCH_MODULE_DEBUG
-#define TOUCH_MODULE_DEBUG true
-#endif
-
-#if TOUCH_MODULE_DEBUG // Enable bounce debug
-#define BOUNCE_FX_DEBUG true
-#endif
-
-class TouchButtonModule
+class Lighter
 {
   protected:
     bool _buttonHolded = false;
     
   public:
-    TouchButtonModule(int pin, Lighter *theLighter, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod);
-    void disable(void);
-    void enable(void);
+    Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true, int startValue = 0);
+    void on(void);
+    void off(void);
+    bool dimmer(int value);
+    int getValue(void);
+    bool setDimmable(bool dimm);
     
   private:
     int _pin;
-    Lighter **_theLighter;
-    int _buttonNumber;
-    int _lastState;
-    int _buttonHoldTimeOut;
-    int _holdPeriod;
-    bool _defaultLevel;
-    bool _enabled = true;
-    os_timer_t _buttonHoldTimer;
-    BounceEffect *bounceFx;
-
-    static ICACHE_RAM_ATTR void buttonChangeCallback(TouchButtonModule* self);
-    static ICACHE_RAM_ATTR void buttonTimerCallback(TouchButtonModule* self);
+    int _onLevel;
+    int _offLevel;
+    int _value;
+    bool _dimmable;
+    bool _lockDimm; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
 };
 #endif

@@ -47,17 +47,23 @@ extern "C"{
 class BounceEffect
 {
   public:
-    BounceEffect(int pin, int mode, int speed);
+    BounceEffect(int pin, int mode, int speed, int unholdCount, bool buttonDefLevel = HIGH);
     void start();
     void stop();
   private:
     int _pin;
     int _speed;
-    unsigned char _value;
-    byte _direction;
+    unsigned int _value;
+    uint8_t _direction;
     int _originalValue;
     int _originalMode;
     os_timer_t _bounceTimer;
+    
+    bool _buttonDefLevel;
+    bool _configuredAsOut;
+    bool _unholdSelected;
+    int _unholdCount;
+    int _unholdCountTemp;
 
     static ICACHE_RAM_ATTR void bounceCallback(BounceEffect* self);
 };

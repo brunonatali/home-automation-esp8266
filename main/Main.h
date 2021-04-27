@@ -1,5 +1,25 @@
 
 ////////////////////////
+//////////////////////// INCLUDES & DECLARATIONS
+////////////////////////
+
+#include <Arduino.h>
+#include <string.h>
+
+// WiFi
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+
+// Interactions
+#include <ESP8266WebServer.h>
+
+
+// Personal LIBs
+#include "TouchButtonModule.h"
+#include "FlashMan.h"
+#include "Lighter.h"
+
+////////////////////////
 //////////////////////// CONFIGURATION
 ////////////////////////
 
@@ -11,28 +31,37 @@
 #define BUTTON_COUNT 6
 
 /*
-  Set button default logic level (untouched)
+  Stores button`s class handler
 */
-#define BUTTON_DEFAULT_LEVEL HIGH
+TouchButtonModule *_touchButton[6];
+
+/*
+  Store output pin Lighter class
+*/
+Lighter *_outputPinController[5];
+
+/**
+ * 
+*/
+FlashMan *_flash;
 
 /*
   Store touch buttons pins
   Using 6 pins to handle 6 touch buttons
-  Default value is {4, 5, 12, 13, 14, 16}
+  Default value is {1, 4, 10, 12, 13, 14}
 */
-int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
+int _buttonPin[6] = {1, 4, 10, 12, 13, 14};
 
 /*
-  Button hold timeout
-  Indicates time in miliseconds that will trigger button is holding
+  Stores output pin config
 */
-#define BUTTON_HOLD_TIMEOUT 3000 // 3 sec
+int _outputPin[5] = {0, 3, 5, 15, 16};
 
 /*
-  Button hold period
-  Indicates time in miliseconds that button still in holded state before return to default
+  Configure if output pin is dimmable or not
 */
-#define BUTTON_HOLD_PERIOD 10000 // 10 sec
+bool _buttonPinDimmable[5] = {true, true, true, true, false};
+
 
 /*
   Enable/disable serial debug
@@ -53,40 +82,6 @@ int _buttonPin[6] = {4, 5, 12, 13, 14, 16};
 #endif
 #endif
 
-////////////////////////
-//////////////////////// INCLUDES & DECLARATIONS
-////////////////////////
-
-#include <Arduino.h>
-#include <string.h>
-
-// WiFi
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-
-// Interactions
-#include <ESP8266WebServer.h>
-
-
-// Personal LIBs
-#include "TouchButtonModule.h"
-#include "FlashMan.h"
-
-
-/*
-  Stores button`s class handler
-*/
-TouchButtonModule *_touchButton[6];
-
-/**
- * 
-*/
-FlashMan *_flash;
-
-/*
-  MAC Address
-*/
-uint8_t _myMac[6];
 
 
 ////////////////////////

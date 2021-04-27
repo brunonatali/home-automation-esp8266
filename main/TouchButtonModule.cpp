@@ -32,15 +32,15 @@ License (MIT license):
   @var int buttonHoldTimeOut Time in miliseconds button must be holded to set it`s hold
   @var int buttonHoldPeriod Time in miliseconds that button still in hold mode
 */
-TouchButtonModule::TouchButtonModule(int pin, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod)
-{
+TouchButtonModule::TouchButtonModule(int pin, Lighter *theLighter, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod) {
   _pin = pin;
+  _theLighter = &theLighter;
   _buttonNumber = buttonNumber;
   _buttonHoldTimeOut = buttonHoldTimeOut;
   _defaultLevel = buttonDefLevel;
   _holdPeriod = buttonHoldPeriod;
 
-  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID);
+  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); // Satart bouce with 3 cycles to unbounce (unhold)
   
   pinMode(pin, INPUT);
   os_timer_setfn(&_buttonHoldTimer, reinterpret_cast<ETSTimerFunc*>(&TouchButtonModule::buttonTimerCallback), reinterpret_cast<void*>(this));
@@ -49,34 +49,19 @@ TouchButtonModule::TouchButtonModule(int pin, int buttonNumber, bool buttonDefLe
 
 ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* self)
 {
+  if (!self->_enabled)
+    return;
+
   int currentBtnState = digitalRead(self->_pin);
-  
-#if TOUCH_MODULE_DEBUG
-  Serial.print("Button: ");
-  Serial.print(self->_buttonNumber);
-  Serial.print(" touch-change(");
-  Serial.print(self->_lastState);
-  Serial.print("->");
-  Serial.print(currentBtnState);
-  Serial.println(")");
-#endif
 
-  if (currentBtnState != self->_defaultLevel) {
+  if (currentBtnState != self->_defaultLevel) { // Button touched
     os_timer_arm(&self->_buttonHoldTimer, self->_buttonHoldTimeOut, false); // Trigger hold timer once
-
-#if TOUCH_MODULE_DEBUG
-    Serial.print("SET BTN ");
-    Serial.print(self->_buttonNumber);
-    Serial.println(" TIMER");
-#endif
-  } else {
+  } else { // Button untouch -> release
+    if (!self->_buttonHolded) {
+      // --->> trigger click
+    }
+    
     os_timer_disarm(&self->_buttonHoldTimer);
-
-#if TOUCH_MODULE_DEBUG
-    Serial.print("UNSET BTN ");
-    Serial.print(self->_buttonNumber);
-    Serial.println(" TIMER");
-#endif
   }
   
   self->_lastState = currentBtnState;
@@ -84,22 +69,20 @@ ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* 
 
 ICACHE_RAM_ATTR void TouchButtonModule::buttonTimerCallback(TouchButtonModule* self)
 {
-#if TOUCH_MODULE_DEBUG
-  Serial.print("TIMER-BTN-");
-  Serial.println(self->_buttonNumber);
-#endif
-
-  if (self->_enabled && digitalRead(self->_pin) != self->_defaultLevel) {
-    self->_buttonHolded = true; // If button still holded after timeout, trigger this button is holded
-    // yield();
-    
+  if (self->_enabled) {
+    self->_buttonHolded = true;
     self->bounceFx->start();
     self->disable();
+
+    // ----->> trigger holded
+    
     if (self->_holdPeriod)
       os_timer_arm(&self->_buttonHoldTimer, self->_holdPeriod, false);
   } else if (self->_buttonHolded && self->_holdPeriod) {
     self->bounceFx->stop();
     self->enable();
+
+    // ----->> trigger unholded
   }
 }
 

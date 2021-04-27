@@ -61,20 +61,31 @@ void setup()
 #endif
 
   _flash = new FlashMan();
-
-  WiFi.macAddress(_myMac);
   
   //if (!checkFlash())
   //  reboot(true);
-    
-  WiFi.softAP(_flash->getSsid(), _flash->getWifiPass());
-  IPAddress myIP = WiFi.softAPIP();
+  /*
+    this->getWifiMode();
+    this->getButtonHoldTO();
+    this->getButtonHoldPeriod();
+    this->getSsid();
+    this->getWifiPass();
+  */
 
-  Serial.print("AP IP address: ");
-  Serial.println(myIP);
-  server.on("/", handleRoot);
-  server.begin();
-  Serial.println("HTTP server started");
+  uint8_t wifiMode = _flash->getWifiMode();
+  if (wifiMode == WIFI_OPERATION_MODE_AP) {
+    WiFi.softAP(_flash->getSsid(), _flash->getWifiPass());
+    IPAddress myIP = WiFi.softAPIP();
+
+    Serial.print("AP IP address: ");
+    Serial.println(myIP);
+    server.on("/", handleRoot);
+    server.begin();
+    Serial.println("HTTP server started");
+  } else if (wifiMode == WIFI_OPERATION_MODE_CLIENT) {
+
+  }
+    
   
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn off light when plugedin 
@@ -100,7 +111,17 @@ void setup()
     Serial.print("->");
     Serial.print(_buttonPin[btnCnt]);
 #endif
-    _touchButton[btnCnt] = new TouchButtonModule(_buttonPin[btnCnt], btnCnt, BUTTON_DEFAULT_LEVEL, BUTTON_HOLD_TIMEOUT, BUTTON_HOLD_PERIOD);
+    uint8_t buttonMode = _flash->getButtonLightMode(btnCnt + 1);
+    if (buttonMode == 0xFF) // disabled
+      continue;
+
+    if (buttonMode == 0xFE) { // dimmer
+    
+    } else if (buttonMode > 0 && buttonMode < 6)  { // 5 Output available 
+        _outputPinController[btnCnt] = new Lighter(buttonMode, !_flash->getButtonLogicLevel(), _flash->getButtonLogicLevel(), _buttonPinDimmable[buttonMode -1], !_buttonPinDimmable[buttonMode -1]);
+
+      _touchButton[btnCnt] = new TouchButtonModule(_buttonPin[btnCnt], _outputPinController[btnCnt], btnCnt, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), _flash->getButtonHoldPeriod());
+    }
   }
 #if SERIAL_DEBUG
     Serial.println("");

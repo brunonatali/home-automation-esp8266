@@ -1,5 +1,5 @@
 /*
-General bounce effect for IO
+Light on - off manager
 Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
 
 License (MIT license):
@@ -23,50 +23,69 @@ License (MIT license):
 
 */
 
-#ifndef TouchButtonModule_h
-#define TouchButtonModule_h
-
-#include <Arduino.h>
-
-#include "BounceEffect.h"
 #include "Lighter.h"
 
-extern "C"{
-#include "user_interface.h"
+
+Lighter::Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm, int startValue)
+{
+    _pin = pin;
+    _onLevel = onLevel;
+    _offLevel = offLevel;
+    _value = startValue;
+    _dimmable = dimmable;
+    _lockDimm = lockDimm;
+
+    pinMode(_pin, OUTPUT);
+
+    if (_value) {
+        if (_value > 1)
+            dimmer(_value);
+        else
+            on();
+    } else {
+        off();
+    }
 }
 
-
-#ifndef TOUCH_MODULE_DEBUG
-#define TOUCH_MODULE_DEBUG true
-#endif
-
-#if TOUCH_MODULE_DEBUG // Enable bounce debug
-#define BOUNCE_FX_DEBUG true
-#endif
-
-class TouchButtonModule
+bool Lighter::dimmer(int value)
 {
-  protected:
-    bool _buttonHolded = false;
-    
-  public:
-    TouchButtonModule(int pin, Lighter *theLighter, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod);
-    void disable(void);
-    void enable(void);
-    
-  private:
-    int _pin;
-    Lighter **_theLighter;
-    int _buttonNumber;
-    int _lastState;
-    int _buttonHoldTimeOut;
-    int _holdPeriod;
-    bool _defaultLevel;
-    bool _enabled = true;
-    os_timer_t _buttonHoldTimer;
-    BounceEffect *bounceFx;
+    if (!_dimmable)
+        return false;
 
-    static ICACHE_RAM_ATTR void buttonChangeCallback(TouchButtonModule* self);
-    static ICACHE_RAM_ATTR void buttonTimerCallback(TouchButtonModule* self);
-};
-#endif
+    if(value > 1023) {
+        value = 1023;
+    } else if (value < 2) {
+        off();
+        return true;
+    }
+
+    _value = value;
+    analogWrite(_pin, value);   
+    return true;
+}
+
+void Lighter::on(void)
+{
+    _value = 1;
+    digitalWrite(_pin, _onLevel);
+}
+
+void Lighter::off(void)
+{
+    _value = 0;
+    digitalWrite(_pin, _offLevel);
+}
+
+int Lighter::getValue(void)
+{
+    return _value;
+}
+
+bool Lighter::setDimmable(bool dimm)
+{
+    if (_lockDimm && !_dimmable)
+        return false;
+
+    _dimmable = dimm;
+    return true;
+}

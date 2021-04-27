@@ -31,30 +31,37 @@ License (MIT license):
   @var int mode Current IO configuration (INPUT/OUTPUT)
   @var int speed Desired bounce speed. Use difined: BOUNCE_EFFECT_SLOW, BOUNCE_EFFECT_MID, BOUNCE_EFFECT_FAST or BOUNCE_EFFECT_FASTEST
 */
-BounceEffect::BounceEffect(int pin, int mode, int speed)
+BounceEffect::BounceEffect(int pin, int mode, int speed, int unholdCount, bool buttonDefLevel)
 {
   _pin = pin;
   _originalMode = mode;
   _speed = speed;
-  if (mode == OUTPUT)
-    _originalValue = analogRead(pin);
-  pinMode(pin, OUTPUT);
+  _unholdCount = unholdCount;
+  _buttonDefLevel = buttonDefLevel;
+
   os_timer_setfn(&_bounceTimer, reinterpret_cast<ETSTimerFunc*>(&BounceEffect::bounceCallback), reinterpret_cast<void*>(this));
 }
 
 void BounceEffect::start()
 {
-  Serial.println("bounce start");
-  _value = 0x00;
+  _value = 0;
   _direction = 2;
+  _unholdSelected = false;
+  _unholdCountTemp = 0;
+
+  if (_originalMode == OUTPUT)
+    _originalValue = analogRead(_pin);
+
+  pinMode(_pin, OUTPUT);
+  _configuredAsOut = true;
   os_timer_arm(&_bounceTimer, 10, true);
-  Serial.println("bounce start (b)");
 }
 
 void BounceEffect::stop()
 {
   os_timer_disarm(&_bounceTimer);
   pinMode(_pin, _originalMode);
+
   if (_originalMode == OUTPUT)
     analogWrite(_pin, _originalValue);
 }
@@ -62,11 +69,38 @@ void BounceEffect::stop()
 ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
 {
   self->_value += self->_direction;
-  if (!self->_value) {
+
+  if (self->_value > 1023 || self->_value < 1) {
     self->_direction = self->_direction * (-1);
     self->_value += self->_direction;
   }
-  analogWrite(self->_pin, self->_value);
+
+  if (self->_originalMode == INPUT) {
+    if (self->_value < 1000) {
+      if (!self->_configuredAsOut) {
+        if (self->_unholdSelected) {
+          self->_unholdCountTemp ++;
+          if (self->_unholdCountTemp >= self->_unholdCount) {
+            self->stop();
+            // ---->> trigger unhold
+          }
+        }
+
+        pinMode(self->_pin, OUTPUT);
+        self->_configuredAsOut = true;
+      }
+      analogWrite(self->_pin, self->_value);
+    } else {
+      if (self->_configuredAsOut) {
+        pinMode(self->_pin, INPUT);
+        self->_configuredAsOut = false;
+      }
+      if (!self->_unholdSelected && digitalRead(self->_pin) != self->_buttonDefLevel)
+        self->_unholdSelected = true;
+    }
+  } else {
+    analogWrite(self->_pin, self->_value);
+  }
 
   #if BOUNCE_FX_DEBUG
   Serial.println(self->_value);

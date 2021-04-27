@@ -57,6 +57,23 @@ License (MIT license):
 #define WIFI_OPERATION_MODE_CLIENT 1
 
 /*
+  Set button default logic level (untouched)
+*/
+#define BUTTON_DEFAULT_LEVEL HIGH
+
+/*
+  Button hold timeout
+  Indicates time in miliseconds that will trigger button is holding
+*/
+#define BUTTON_HOLD_TIMEOUT 2 // 2 sec
+
+/*
+  Button hold period
+  Indicates time in miliseconds that button still in holded state before return to default
+*/
+#define BUTTON_HOLD_PERIOD 15 // 15 sec
+
+/*
   Enable/disable serial debug
 */
 #ifndef SERIAL_DEBUG
@@ -68,18 +85,45 @@ class FlashMan
   public:
     FlashMan();
     bool setSsid(String ssid, bool setCrc = true);
-    bool setWifiPassword(String pass, bool setCrc);
+    bool setWifiPassword(String pass, bool setCrc = true);
+    bool setButtonHoldTO(uint8_t seconds, bool setCrc = true);
+    bool setButtonHoldPeriod(uint8_t seconds, bool setCrc = true);
+    bool setWifiMode(uint8_t mode, bool setCrc = true);
+    bool setButtonLogicLevel(uint8_t level, bool setCrc = true);
+    bool setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc = true);
+    bool setButtonDimmer(uint8_t button, uint8_t value, bool setCrc = true);
+
     String getSsid(void);
     String getWifiPass(void);
+    uint8_t getButtonHoldTO(bool force = false);
+    uint8_t getButtonHoldPeriod(bool force = false);
+    uint8_t getWifiMode(bool force = false);
+    uint8_t getButtonLogicLevel(bool force = false);
+    uint8_t getButtonLightMode(uint8_t button, bool force = false);
+    uint8_t getButtonDimmer(uint8_t button, bool force = false);
 
     static bool writeString(String str, int p1Index, int p2Index, const int size, bool setCrc = true);
-    static uint32_t calcFlashCrc(uint8_t partition);
-    static bool setFlashCrc(uint8_t partition);
-    static uint32_t getFlashCrc(uint8_t partition);
+    static bool writeByte(uint8_t byte, int p1Index, int p2Index, bool setCrc = true);
+    static bool writeBit(uint8_t *boolConfigs, uint8_t bit, uint8_t byteIndex, int p1Index, int p2Index, bool setCrc = true);
+
     static String getString(int index, uint8_t size);
+    static char getByte(int index);
+
+    uint8_t boolConfigs;
 
     private:
     String ssid;
     String wifiPass;
+    uint8_t wifiMode;
+    uint8_t btnLogicLevel;
+    uint8_t btnHoldTimeOut;
+    uint8_t btnHoldPeriod;
+    uint8_t btnMode[6];
+    uint8_t btnDimmer[6];
+
+    static bool copyFlashPartition(uint8_t from, bool setCrc = true);
+    static uint32_t calcFlashCrc(uint8_t partition);
+    static bool setFlashCrc(uint8_t partition);
+    static uint32_t getFlashCrc(uint8_t partition);
 };
 #endif
