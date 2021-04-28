@@ -28,8 +28,8 @@ License (MIT license):
 
 #include <Arduino.h>
 
+#include "GenericCallbacks.h"
 #include "BounceEffect.h"
-#include "Lighter.h"
 
 extern "C"{
 #include "user_interface.h"
@@ -50,13 +50,16 @@ class TouchButtonModule
     bool _buttonHolded = false;
     
   public:
-    TouchButtonModule(int pin, Lighter *theLighter, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod);
+    TouchButtonModule(int pin, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod);
+    ~TouchButtonModule(void);
     void disable(void);
     void enable(void);
+    void setClickFunction(clickcallback *callback, void *arg);
+    void setHoldFunction(unholdcallback *callback, void *arg);
+    void setUnholdFunction(unholdcallback *callback, void *arg);
     
   private:
     int _pin;
-    Lighter **_theLighter;
     int _buttonNumber;
     int _lastState;
     int _buttonHoldTimeOut;
@@ -65,8 +68,17 @@ class TouchButtonModule
     bool _enabled = true;
     os_timer_t _buttonHoldTimer;
     BounceEffect *bounceFx;
+    
+    static ICACHE_RAM_ATTR bool buttonUnholdCallback(TouchButtonModule* self);
 
     static ICACHE_RAM_ATTR void buttonChangeCallback(TouchButtonModule* self);
     static ICACHE_RAM_ATTR void buttonTimerCallback(TouchButtonModule* self);
+
+    clickcallback clickCallback;
+    unholdcallback holdCallback;
+    unholdcallback unholdCallback;
+    void *clickCallbackArg;
+    void *holdCallbackArg;
+    void *unholdCallbackArg;
 };
 #endif

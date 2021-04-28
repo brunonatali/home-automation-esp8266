@@ -18,6 +18,8 @@
         "tuple": "cpp",
         "type_traits": "cpp",
         "utility": "cpp",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "xiosbase": "cpp",
+        "xlocale": "cpp"
     }
 }

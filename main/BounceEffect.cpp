@@ -39,10 +39,18 @@ BounceEffect::BounceEffect(int pin, int mode, int speed, int unholdCount, bool b
   _unholdCount = unholdCount;
   _buttonDefLevel = buttonDefLevel;
 
+  unholdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
+  unholdCallbackArg = this;
+
   os_timer_setfn(&_bounceTimer, reinterpret_cast<ETSTimerFunc*>(&BounceEffect::bounceCallback), reinterpret_cast<void*>(this));
 }
 
-void BounceEffect::start()
+BounceEffect::~BounceEffect()
+{
+  this->stop();
+}
+
+void BounceEffect::start(void)
 {
   _value = 0;
   _direction = 2;
@@ -57,13 +65,19 @@ void BounceEffect::start()
   os_timer_arm(&_bounceTimer, 10, true);
 }
 
-void BounceEffect::stop()
+void BounceEffect::stop(void)
 {
   os_timer_disarm(&_bounceTimer);
   pinMode(_pin, _originalMode);
 
   if (_originalMode == OUTPUT)
     analogWrite(_pin, _originalValue);
+}
+
+void BounceEffect::setUnholdFunction(unholdcallback *callback, void *arg)
+{
+  unholdCallback = *callback;
+  unholdCallbackArg = arg;
 }
 
 ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
@@ -81,8 +95,11 @@ ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
         if (self->_unholdSelected) {
           self->_unholdCountTemp ++;
           if (self->_unholdCountTemp >= self->_unholdCount) {
-            self->stop();
             // ---->> trigger unhold
+            if (self->unholdCallback(self->unholdCallbackArg, self->_pin)) {
+              self->stop();
+              return;
+            }
           }
         }
 

@@ -38,8 +38,9 @@ class Lighter
     void on(void);
     void off(void);
     bool dimmer(int value);
-    int getValue(void);
     bool setDimmable(bool dimm);
+    int getValue(void);
+    bool getDimmable(void);
     
   private:
     int _pin;

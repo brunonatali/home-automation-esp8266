@@ -15,6 +15,7 @@
 
 
 // Personal LIBs
+#include "GenericCallbacks.h"
 #include "TouchButtonModule.h"
 #include "FlashMan.h"
 #include "Lighter.h"
@@ -28,7 +29,7 @@
   Default value is 6
   Obs. A number gratter than 6 takes no effect, will assime 6 
 */
-#define BUTTON_COUNT 6
+#define BUTTON_COUNT 1
 
 /*
   Stores button`s class handler
@@ -50,7 +51,12 @@ FlashMan *_flash;
   Using 6 pins to handle 6 touch buttons
   Default value is {1, 4, 10, 12, 13, 14}
 */
-int _buttonPin[6] = {1, 4, 10, 12, 13, 14};
+int _buttonPin[1] = {14}; // {1, 4, 10, 12, 13, 14};
+
+/*
+  Stores configured mode for each button
+*/
+int _buttonMode[6] = {0xFF}; // Disabled by default
 
 /*
   Stores output pin config
@@ -61,6 +67,21 @@ int _outputPin[5] = {0, 3, 5, 15, 16};
   Configure if output pin is dimmable or not
 */
 bool _buttonPinDimmable[5] = {true, true, true, true, false};
+
+/**
+ * System used - Enable / disable dimmer
+*/
+bool dimmerEnabled = false;
+
+/**
+ * System used - Store dimmer button index
+*/
+uint8_t dimmerButtonIndex = 0xFF;
+
+/**
+ * System used - Store holded button number
+*/
+uint8_t dimmerHoldButton = 0xFF;
 
 
 /*
@@ -122,3 +143,8 @@ uint32_t char2UInt(const uint8_t (&buf)[4]);
 
 
 bool setFlashCrc(uint8_t partition);
+
+
+static ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber);

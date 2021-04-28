@@ -28,6 +28,7 @@ License (MIT license):
 
 #include <Arduino.h>
 
+#include "GenericCallbacks.h"
 extern "C"{
 #include "user_interface.h"
 }
@@ -48,8 +49,11 @@ class BounceEffect
 {
   public:
     BounceEffect(int pin, int mode, int speed, int unholdCount, bool buttonDefLevel = HIGH);
-    void start();
-    void stop();
+    ~BounceEffect(void);
+    void start(void);
+    void stop(void);
+    void setUnholdFunction(unholdcallback *callback, void *arg);
+
   private:
     int _pin;
     int _speed;
@@ -66,5 +70,8 @@ class BounceEffect
     int _unholdCountTemp;
 
     static ICACHE_RAM_ATTR void bounceCallback(BounceEffect* self);
+
+    unholdcallback unholdCallback;
+    void *unholdCallbackArg;
 };
 #endif

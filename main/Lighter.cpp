@@ -81,6 +81,11 @@ int Lighter::getValue(void)
     return _value;
 }
 
+bool Lighter::getDimmable(void)
+{
+    return _dimmable;
+}
+
 bool Lighter::setDimmable(bool dimm)
 {
     if (_lockDimm && !_dimmable)

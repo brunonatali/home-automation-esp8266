@@ -32,19 +32,59 @@ License (MIT license):
   @var int buttonHoldTimeOut Time in miliseconds button must be holded to set it`s hold
   @var int buttonHoldPeriod Time in miliseconds that button still in hold mode
 */
-TouchButtonModule::TouchButtonModule(int pin, Lighter *theLighter, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod) {
+TouchButtonModule::TouchButtonModule(int pin, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod) {
   _pin = pin;
-  _theLighter = &theLighter;
   _buttonNumber = buttonNumber;
   _buttonHoldTimeOut = buttonHoldTimeOut;
   _defaultLevel = buttonDefLevel;
   _holdPeriod = buttonHoldPeriod;
 
   bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); // Satart bouce with 3 cycles to unbounce (unhold)
+
+  bounceFx->setUnholdFunction(reinterpret_cast<unholdcallback*>(&TouchButtonModule::buttonUnholdCallback), reinterpret_cast<void*>(this));
+
+  // Declare default callbacks
+  clickCallback = &GenericCallbacks::defaultCallbackReturnVoidArgSelf;
+  clickCallbackArg = this;
+  holdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
+  holdCallbackArg = this;
+  unholdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
+  unholdCallbackArg = this;
   
   pinMode(pin, INPUT);
   os_timer_setfn(&_buttonHoldTimer, reinterpret_cast<ETSTimerFunc*>(&TouchButtonModule::buttonTimerCallback), reinterpret_cast<void*>(this));
   this->enable();
+}
+
+TouchButtonModule::~TouchButtonModule(void)
+{
+  this->disable();
+}
+
+void TouchButtonModule::setClickFunction(clickcallback *callback, void *arg)
+{
+  clickCallback = *callback;
+  clickCallbackArg = arg;
+}
+
+void TouchButtonModule::setHoldFunction(holdcallback *callback, void *arg)
+{
+  holdCallback = *callback;
+  holdCallbackArg = arg;
+}
+
+void TouchButtonModule::setUnholdFunction(unholdcallback *callback, void *arg)
+{
+  unholdCallback = *callback;
+  unholdCallbackArg = arg;
+}
+
+ICACHE_RAM_ATTR bool TouchButtonModule::buttonUnholdCallback(TouchButtonModule* self)
+{
+  self->bounceFx->stop();
+  self->enable();
+  self->unholdCallback(self->unholdCallbackArg, self->_buttonNumber);
+  return true;
 }
 
 ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* self)
@@ -59,6 +99,7 @@ ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* 
   } else { // Button untouch -> release
     if (!self->_buttonHolded) {
       // --->> trigger click
+      self->clickCallback(self->clickCallbackArg, self->_buttonNumber);
     }
     
     os_timer_disarm(&self->_buttonHoldTimer);
@@ -75,27 +116,47 @@ ICACHE_RAM_ATTR void TouchButtonModule::buttonTimerCallback(TouchButtonModule* s
     self->disable();
 
     // ----->> trigger holded
+    (void) self->holdCallback(self->holdCallbackArg, self->_buttonNumber);
     
     if (self->_holdPeriod)
       os_timer_arm(&self->_buttonHoldTimer, self->_holdPeriod, false);
   } else if (self->_buttonHolded && self->_holdPeriod) {
-    self->bounceFx->stop();
-    self->enable();
 
     // ----->> trigger unholded
+    (void) TouchButtonModule::buttonUnholdCallback(self);
   }
 }
 
 void TouchButtonModule::enable(void)
 {
-  _enabled = true;
+  if (_enabled)
+    return;
+
+  // Turn on button led
+  if (_defaultLevel) {
+    digitalWrite(_pin, HIGH);
+    pinMode(_pin, INPUT);
+  }
+
   os_timer_disarm(&_buttonHoldTimer);
   attachInterruptArg(digitalPinToInterrupt(_pin), reinterpret_cast<void (*)(void*)>(&TouchButtonModule::buttonChangeCallback), this, CHANGE);
+
+  _enabled = true;
 }
 
 void TouchButtonModule::disable(void)
 {
+  if (!_enabled)
+    return;
+
   detachInterrupt(_pin);
   os_timer_disarm(&_buttonHoldTimer);
+
+  // Turn off button led
+  if (_defaultLevel) {
+    pinMode(_pin, OUTPUT);
+    digitalWrite(_pin, LOW);
+  }
+
   _enabled = false;
 }

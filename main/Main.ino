@@ -31,17 +31,140 @@ String ssid;
 
 String wifiPass;
 
-ESP8266WebServer server(80);
+//ESP8266WebServer server(80);
 
+WiFiServer wifiServer(10000);
+
+/*
 void handleRoot() {
   server.send(200, "text/html", "<h1>You are connected</h1>");
   #if SERIAL_DEBUG
     Serial.println("Client requested root");
   #endif
 }
+*/
+
+ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
+{
+  Serial.print("clicked");
+  Serial.println(buttonNumber);
+
+  if (_buttonMode[buttonNumber] > 0 && _buttonMode[buttonNumber] < 6) {
+    uint8_t out = _buttonMode[buttonNumber] -1;
+    if (_outputPinController[out]->getValue()) {
+      _outputPinController[out]->off();
+    } else {
+      if (_outputPinController[out]->getDimmable())
+        _outputPinController[out]->dimmer(_flash->getButtonDimmer(_buttonMode[buttonNumber]));
+      else
+        _outputPinController[out]->on();
+    }
+  }
+}
+
+ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
+{
+  Serial.print("holded");
+  Serial.println(buttonNumber);
+
+  // Enable dimmer button
+  enableDimmerButton();
+  dimmerHoldButton = _buttonMode[buttonNumber] -1;
+
+  // Disable all other buttons
+  for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+    if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
+      _touchButton[btnCnt]->disable();
+      _buttonMode[btnCnt] = 0xFE; // Disabled by software -> re-enable after interaction
+    }
+  }
+}
+
+ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
+{
+  Serial.print("un-holded");
+  Serial.println(buttonNumber);
+
+  // Disable dimmer button
+  disableDimmerButton();
+  dimmerHoldButton = 0xFF;
+
+  // Re-enable disabled buttons on holded
+  for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+    if (btnCnt != buttonNumber && _buttonMode[btnCnt] == 0xFE) { // Only enable previously disabled buttons
+      _touchButton[btnCnt]->enable();
+      _buttonMode[btnCnt] = _flash->getButtonLightMode(buttonNumber + 1);
+    }
+  }
+}
+
+void dimmerButtonClicked()
+{
+  if (dimmerEnabled && dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable()) {
+    uint16_t value = _outputPinController[dimmerHoldButton]->getValue();
+
+    if (value > 1000) 
+      value = 204;
+    else
+      value = value + 204;
+
+    _outputPinController[dimmerHoldButton]->dimmer(value);
+  }
+}
+
+void enableDimmerButton()
+{
+  if (dimmerButtonIndex == 0xFF)
+    return;
+
+  pinMode(_buttonPin[dimmerButtonIndex], INPUT);
+  attachInterrupt(digitalPinToInterrupt(_buttonPin[dimmerButtonIndex]), &dimmerButtonClicked, RISING);
+  dimmerEnabled = true;
+}
+
+void disableDimmerButton()
+{
+  if (dimmerButtonIndex == 0xFF)
+    return;
+
+  dimmerEnabled = false;
+  pinMode(_buttonPin[dimmerButtonIndex], OUTPUT);
+  digitalWrite(_buttonPin[dimmerButtonIndex], LOW);
+  detachInterrupt(_buttonPin[dimmerButtonIndex]);
+}
+
+void configureButton(uint8_t buttonIndex, uint8_t mode)
+{
+  delete _touchButton[buttonIndex]; // Delete current instance
+
+  if (mode == 0xC8) { // dimmer
+    dimmerButtonIndex = buttonIndex;
+    dimmerEnabled = false;
+  } else {
+    if (_buttonMode[buttonIndex] >= 0xC8) { // If this button was previously configured as dimmer
+      dimmerEnabled = false;
+      disableDimmerButton();
+      dimmerButtonIndex = 0xFF;
+    }
+
+    _touchButton[buttonIndex] = new TouchButtonModule(_buttonPin[buttonIndex], buttonIndex, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), _flash->getButtonHoldPeriod());
+
+    if (mode >= 0xFE) // disabled
+      _touchButton[buttonIndex]->disable();
+
+    _touchButton[buttonIndex]->setClickFunction(reinterpret_cast<clickcallback*>(&buttonClicked), nullptr);
+
+    _touchButton[buttonIndex]->setHoldFunction(reinterpret_cast<holdcallback*>(&buttonHolded), nullptr);
+
+    _touchButton[buttonIndex]->setUnholdFunction(reinterpret_cast<unholdcallback*>(&buttonUnholded), nullptr);
+  }
+
+  _buttonMode[buttonIndex] = mode;
+}
 
 void setup()
 {
+  delay(1000);
 /*
   SYSTEM INFO
 */
@@ -73,22 +196,49 @@ void setup()
   */
 
   uint8_t wifiMode = _flash->getWifiMode();
+
+delay(1000);
+  Serial.print("Wifi mde:");
+  Serial.print(wifiMode);
+  Serial.print("-");
+  Serial.println(WIFI_OPERATION_MODE_AP);
+  WiFi.mode(WIFI_OFF);
+delay(1000);
   if (wifiMode == WIFI_OPERATION_MODE_AP) {
+    WiFi.mode(WIFI_AP);
+    while (WiFi.getMode() != WIFI_AP) {
+      delay(50);
+    }
+    if(!WiFi.softAPConfig(IPAddress(192, 168, 5, 1), IPAddress(192, 168, 5, 1), IPAddress(255, 255, 255, 0))){
+      Serial.println("AP Config Failed");
+    }
+
     WiFi.softAP(_flash->getSsid(), _flash->getWifiPass());
     IPAddress myIP = WiFi.softAPIP();
 
     Serial.print("AP IP address: ");
     Serial.println(myIP);
-    server.on("/", handleRoot);
-    server.begin();
+    //server.on("/", handleRoot);
+    //server.begin();
     Serial.println("HTTP server started");
   } else if (wifiMode == WIFI_OPERATION_MODE_CLIENT) {
 
   }
-    
+  
+delay(1000);
+  Serial.print("Wifi status:");
+  Serial.println(WiFi.status());
+delay(1000);
+
+  WiFi.printDiag(Serial);
+  delay(5000);
+
+  wifiServer.begin();
+  delay(1000);
   
   pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(LED_BUILTIN, HIGH);  // Turn off light when plugedin 
+  //analogWrite(LED_BUILTIN, 500);
 
 /*
   BUTTONS
@@ -102,6 +252,19 @@ void setup()
     Serial.println("None");
   }
 #endif
+delay(1000);
+  /*
+  for (int outPinCnt = 0 ; outPinCnt < 5 ; outPinCnt++) {
+    _outputPinController[outPinCnt] = new Lighter(
+      _outputPin[outPinCnt], 
+      !_flash->getButtonLogicLevel(), 
+      _flash->getButtonLogicLevel(), 
+      _buttonPinDimmable[_buttonMode[outPinCnt] -1], 
+      !_buttonPinDimmable[_buttonMode[outPinCnt] -1]
+    );
+    delay(500);
+  }
+  */
 
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
 #if SERIAL_DEBUG
@@ -111,30 +274,47 @@ void setup()
     Serial.print("->");
     Serial.print(_buttonPin[btnCnt]);
 #endif
-    uint8_t buttonMode = _flash->getButtonLightMode(btnCnt + 1);
-    if (buttonMode == 0xFF) // disabled
-      continue;
 
-    if (buttonMode == 0xFE) { // dimmer
+    configureButton(btnCnt, _flash->getButtonLightMode(btnCnt + 1));
+    delay(500);
     
-    } else if (buttonMode > 0 && buttonMode < 6)  { // 5 Output available 
-        _outputPinController[btnCnt] = new Lighter(buttonMode, !_flash->getButtonLogicLevel(), _flash->getButtonLogicLevel(), _buttonPinDimmable[buttonMode -1], !_buttonPinDimmable[buttonMode -1]);
-
-      _touchButton[btnCnt] = new TouchButtonModule(_buttonPin[btnCnt], _outputPinController[btnCnt], btnCnt, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), _flash->getButtonHoldPeriod());
-    }
   }
 #if SERIAL_DEBUG
     Serial.println("");
 #endif
+
+
+
+  Serial.setDebugOutput(true);
 }
 
 
 // the loop function runs over and over again forever
 void loop()
 {
-  server.handleClient();
-}
+  // server.handleClient();
 
+    WiFiClient client = wifiServer.available();
+ 
+  if (client) {
+    Serial.println("Client connected");
+    while (client.connected()) {
+ 
+      while (client.available()>0) {
+        char c = client.read();
+        
+        _touchButton[0]->enable();
+
+        Serial.write(c);
+      }
+ 
+      delay(10);
+    }
+ 
+    client.stop();
+    Serial.println("Client disconnected");
+  }
+}
 
 void reboot(bool critical)
 {
