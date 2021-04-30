@@ -54,13 +54,18 @@ class BounceEffect
     void stop(void);
     void setUnholdFunction(unholdcallback *callback, void *arg);
 
+    unholdcallback unholdCallback;
+    void *unholdCallbackArg;
+
   private:
     int _pin;
     int _speed;
-    unsigned int _value;
-    uint8_t _direction;
+    int _value;
+    int _direction;
     int _originalValue;
     int _originalMode;
+    uint8_t _bouncePeriod; /* Time between LOW - HIGH in seconds*/
+    uint16_t _bounceUnholdLimit;
     os_timer_t _bounceTimer;
     
     bool _buttonDefLevel;
@@ -70,8 +75,5 @@ class BounceEffect
     int _unholdCountTemp;
 
     static ICACHE_RAM_ATTR void bounceCallback(BounceEffect* self);
-
-    unholdcallback unholdCallback;
-    void *unholdCallbackArg;
 };
 #endif

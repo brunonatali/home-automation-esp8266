@@ -90,7 +90,32 @@ FlashMan::FlashMan()
       Serial.println("OK");
     else
       Serial.println("ERROR");
+    Serial.print("\t-Light Mode->");
 #endif
+    bool lightModeResult = true;
+    for (uint8_t i = 1; i <= 6; i++)
+      bool lightModeResult = lightModeResult & FlashMan::setButtonLightMode(i, (i == 1 ? 0xC8 : i - 1), false); 
+#if SERIAL_DEBUG
+    if (lightModeResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
+    Serial.print("\t-Light Dimm->");
+#endif
+    bool lightDimmResult = true;
+    for (uint8_t i = 1; i <= 6; i++)
+      bool lightDimmResult = lightDimmResult & FlashMan::setButtonDimmer(i, 0, false); // OFF by default
+#if SERIAL_DEBUG
+    if (lightDimmResult)
+      Serial.println("OK");
+    else
+      Serial.println("ERROR");
+#endif
+
+
+    /**
+     * SAVE CHANGES TO FLASH
+    */
     if (EEPROM.commit()) {
       // if (FlashMan::setFlashCrc(1) && FlashMan::setFlashCrc(2))
 
@@ -113,6 +138,11 @@ FlashMan::FlashMan()
     this->getButtonHoldPeriod(true);
     this->getWifiMode(true);
     this->getButtonLogicLevel(true);
+    // Get buttons value
+    for (uint8_t i = 1; i <= 6; i++) {
+      this->getButtonLightMode(i, true);
+      this->getButtonDimmer(i, true);
+    }
   }
 }
 
@@ -216,7 +246,7 @@ bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
     Serial.print("setButtonLightMode: ");
 #endif
 
-  if (button > 6 || (mode > 6 && (mode != 0xFE && mode != 0xFF))) {
+  if (button > 6 || (mode > 6 && (mode != 0xC8 && mode != 0xFE && mode != 0xFF))) { // C8 - dimmer, FE - sw disabled, FF - hard disabled
 #if SERIAL_DEBUG
     Serial.print("ERROR ");
     Serial.print(button);
@@ -228,16 +258,18 @@ bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
 
   if (FlashMan::writeByte(mode, 4 + button, 254 + button, setCrc)) {
     this->btnMode[button - 1] = mode;
+    Serial.println("OK");
     return true;
   }
 
+  Serial.println("flaERR");
   return false;
 }
 
 bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
 {
 #if SERIAL_DEBUG
-    Serial.print("setButtonLightMode: ");
+    Serial.print("setButtonDimmer: ");
 #endif
 
   if (button > 6) {
@@ -252,9 +284,11 @@ bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
 
   if (FlashMan::writeByte(value, 10 + button, 260 + button, setCrc)) {
     this->btnDimmer[button - 1] = value;
+    Serial.println("OK");
     return true;
   }
 
+  Serial.println("flaERR");
   return false;
 }
 

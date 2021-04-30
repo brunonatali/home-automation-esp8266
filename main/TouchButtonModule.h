@@ -57,6 +57,13 @@ class TouchButtonModule
     void setClickFunction(clickcallback *callback, void *arg);
     void setHoldFunction(unholdcallback *callback, void *arg);
     void setUnholdFunction(unholdcallback *callback, void *arg);
+
+    clickcallback clickCallback;
+    unholdcallback holdCallback;
+    unholdcallback unholdCallback;
+    void *clickCallbackArg;
+    void *holdCallbackArg;
+    void *unholdCallbackArg;
     
   private:
     int _pin;
@@ -65,20 +72,13 @@ class TouchButtonModule
     int _buttonHoldTimeOut;
     int _holdPeriod;
     bool _defaultLevel;
-    bool _enabled = true;
+    bool _enabled = false;
     os_timer_t _buttonHoldTimer;
     BounceEffect *bounceFx;
     
-    static ICACHE_RAM_ATTR bool buttonUnholdCallback(TouchButtonModule* self);
+    static ICACHE_RAM_ATTR bool buttonUnholdCallback(TouchButtonModule* self, uint16_t number);
 
     static ICACHE_RAM_ATTR void buttonChangeCallback(TouchButtonModule* self);
     static ICACHE_RAM_ATTR void buttonTimerCallback(TouchButtonModule* self);
-
-    clickcallback clickCallback;
-    unholdcallback holdCallback;
-    unholdcallback unholdCallback;
-    void *clickCallbackArg;
-    void *holdCallbackArg;
-    void *unholdCallbackArg;
 };
 #endif

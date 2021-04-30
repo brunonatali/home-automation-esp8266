@@ -3,7 +3,7 @@ Main program for ESP8266 home automation
 Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
 
 License (MIT license):
-  Permission is hereby granted, free of charge, to any person obtaining a copy
+  Permission is hereby granted, free of charge, to any person obtain®ing a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
@@ -46,10 +46,12 @@ void handleRoot() {
 
 ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 {
-  Serial.print("clicked");
-  Serial.println(buttonNumber);
+  Serial.print("clicked:");
+  Serial.print(buttonNumber);
+  Serial.print("-");
+  Serial.println(_buttonMode[buttonNumber]);
 
-  if (_buttonMode[buttonNumber] > 0 && _buttonMode[buttonNumber] < 6) {
+  if (_buttonMode[buttonNumber] >= 1 && _buttonMode[buttonNumber] <= 5) {
     uint8_t out = _buttonMode[buttonNumber] -1;
     if (_outputPinController[out]->getValue()) {
       _outputPinController[out]->off();
@@ -64,16 +66,26 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 
 ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
 {
-  Serial.print("holded");
+  Serial.print("holded:");
   Serial.println(buttonNumber);
 
   // Enable dimmer button
-  enableDimmerButton();
-  dimmerHoldButton = _buttonMode[buttonNumber] -1;
+  uint8_t tempBtnMode = _buttonMode[buttonNumber] -1;
+  dimmerHoldButton = (tempBtnMode < 6 ? tempBtnMode : 0xFF);
+  Serial.print("dimmable:");
+  Serial.print(dimmerHoldButton);
+  Serial.print("-");
+  Serial.println(_outputPinController[dimmerHoldButton]->getDimmable());
+  if (_outputPinController[dimmerHoldButton]->getDimmable())
+    enableDimmerButton(); // Just enable dimmer if holded button is dimmable
 
   // Disable all other buttons
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
     if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
+  Serial.print("disable:");
+  Serial.print(btnCnt);
+  Serial.print("-");
+  Serial.println(_buttonMode[btnCnt]);
       _touchButton[btnCnt]->disable();
       _buttonMode[btnCnt] = 0xFE; // Disabled by software -> re-enable after interaction
     }
@@ -103,7 +115,15 @@ void dimmerButtonClicked()
   if (dimmerEnabled && dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable()) {
     uint16_t value = _outputPinController[dimmerHoldButton]->getValue();
 
-    if (value > 1000) 
+    /**
+     * 204 is 5 dimmer stages
+     * 1 - 204
+     * 2 - 408
+     * 3 - 612
+     * 4 - 816
+     * 5 - 1020
+    */
+    if (value > 819) 
       value = 204;
     else
       value = value + 204;
@@ -139,7 +159,7 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
 
   if (mode == 0xC8) { // dimmer
     dimmerButtonIndex = buttonIndex;
-    dimmerEnabled = false;
+    disableDimmerButton();
   } else {
     if (_buttonMode[buttonIndex] >= 0xC8) { // If this button was previously configured as dimmer
       dimmerEnabled = false;
@@ -147,16 +167,16 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
       dimmerButtonIndex = 0xFF;
     }
 
-    _touchButton[buttonIndex] = new TouchButtonModule(_buttonPin[buttonIndex], buttonIndex, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), _flash->getButtonHoldPeriod());
+    _touchButton[buttonIndex] = new TouchButtonModule(_buttonPin[buttonIndex], buttonIndex, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), 30); //_flash->getButtonHoldPeriod()
 
     if (mode >= 0xFE) // disabled
       _touchButton[buttonIndex]->disable();
-
-    _touchButton[buttonIndex]->setClickFunction(reinterpret_cast<clickcallback*>(&buttonClicked), nullptr);
-
-    _touchButton[buttonIndex]->setHoldFunction(reinterpret_cast<holdcallback*>(&buttonHolded), nullptr);
-
-    _touchButton[buttonIndex]->setUnholdFunction(reinterpret_cast<unholdcallback*>(&buttonUnholded), nullptr);
+    _touchButton[buttonIndex]->clickCallback = reinterpret_cast<clickcallback>(buttonClicked);
+    _touchButton[buttonIndex]->clickCallbackArg = nullptr;
+    _touchButton[buttonIndex]->holdCallback = reinterpret_cast<holdcallback>(buttonHolded);
+    _touchButton[buttonIndex]->holdCallbackArg = nullptr;
+    _touchButton[buttonIndex]->unholdCallback = reinterpret_cast<unholdcallback>(buttonUnholded);
+    _touchButton[buttonIndex]->unholdCallbackArg = nullptr;
   }
 
   _buttonMode[buttonIndex] = mode;
@@ -235,47 +255,70 @@ delay(1000);
 
   wifiServer.begin();
   delay(1000);
+
   
-  pinMode(LED_BUILTIN, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
-  digitalWrite(LED_BUILTIN, HIGH);  // Turn off light when plugedin 
+  Serial.print("btn led PWM:");
+  Serial.println(analogRead(2));
+delay(500);
+  
+  pinMode(2, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
+  digitalWrite(2, HIGH);  // Turn off light when plugedin 
   //analogWrite(LED_BUILTIN, 500);
+
+
+/**
+ * OUTPUT PINS (LIGHT)
+*/
+#if SERIAL_DEBUG
+  Serial.print("Initializing OUTPUTS: ");
+#endif
+delay(1000);
+
+  for (int outPinCnt = 0 ; outPinCnt < 5 ; outPinCnt++) {
+#if SERIAL_DEBUG
+    if (outPinCnt)
+      Serial.print(", ");
+    Serial.print(outPinCnt);
+    Serial.print("->");
+    Serial.print(_outputPin[outPinCnt]);
+#endif
+
+    _outputPinController[outPinCnt] = new Lighter(
+      _outputPin[outPinCnt], 
+      !_flash->getButtonLogicLevel(), 
+      _flash->getButtonLogicLevel(), 
+      (_flash->getButtonDimmer(outPinCnt + 1) != 0 && _buttonPinDimmable[outPinCnt]), 
+      !_buttonPinDimmable[outPinCnt]
+    );
+    delay(500);
+  }
+
 
 /*
   BUTTONS
 */
 #if SERIAL_DEBUG
-  Serial.print("Initializing buttons: ");
+  Serial.print("\nInitializing buttons: ");
   if (BUTTON_COUNT) {
     Serial.print(BUTTON_COUNT);
-    Serial.print(": ");
+    Serial.println(": ");
   } else {
     Serial.println("None");
   }
 #endif
 delay(1000);
-  /*
-  for (int outPinCnt = 0 ; outPinCnt < 5 ; outPinCnt++) {
-    _outputPinController[outPinCnt] = new Lighter(
-      _outputPin[outPinCnt], 
-      !_flash->getButtonLogicLevel(), 
-      _flash->getButtonLogicLevel(), 
-      _buttonPinDimmable[_buttonMode[outPinCnt] -1], 
-      !_buttonPinDimmable[_buttonMode[outPinCnt] -1]
-    );
-    delay(500);
-  }
-  */
 
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+    uint8_t tmpBtnMode = _flash->getButtonLightMode(btnCnt + 1);
 #if SERIAL_DEBUG
-    if (btnCnt)
-      Serial.print(", ");
     Serial.print(btnCnt);
     Serial.print("->");
     Serial.print(_buttonPin[btnCnt]);
+    Serial.print("-");
+    Serial.println(tmpBtnMode);
 #endif
 
-    configureButton(btnCnt, _flash->getButtonLightMode(btnCnt + 1));
+    configureButton(btnCnt, tmpBtnMode);
     delay(500);
     
   }
@@ -352,8 +395,3 @@ bool calcCrcFlash(unsigned char partition)
   }
 }
 */
-
-
-
-
-

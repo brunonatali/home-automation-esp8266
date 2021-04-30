@@ -18,7 +18,7 @@ class GenericCallbacks
 {
   public:
     static ICACHE_RAM_ATTR void defaultCallbackReturnVoidArgSelf(void* self, uint16_t number = 0xFFFF);
-    static ICACHE_RAM_ATTR bool defaultCallbackReturnFalseArgSelf(void* , uint16_t number = 0xFFFF);
+    static ICACHE_RAM_ATTR bool defaultCallbackReturnFalseArgSelf(void* self, uint16_t number = 0xFFFF);
 };
 
 

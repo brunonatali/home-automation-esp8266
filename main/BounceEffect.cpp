@@ -38,6 +38,9 @@ BounceEffect::BounceEffect(int pin, int mode, int speed, int unholdCount, bool b
   _speed = speed;
   _unholdCount = unholdCount;
   _buttonDefLevel = buttonDefLevel;
+  _bouncePeriod = 4; // quanto maior mais rápido (valores grandes podem causar efeito "escada")
+  _bounceUnholdLimit = 1023 - ((_bouncePeriod * 8) + 5);
+  
 
   unholdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
   unholdCallbackArg = this;
@@ -53,7 +56,7 @@ BounceEffect::~BounceEffect()
 void BounceEffect::start(void)
 {
   _value = 0;
-  _direction = 2;
+  _direction = _bouncePeriod * 8;
   _unholdSelected = false;
   _unholdCountTemp = 0;
 
@@ -62,7 +65,7 @@ void BounceEffect::start(void)
 
   pinMode(_pin, OUTPUT);
   _configuredAsOut = true;
-  os_timer_arm(&_bounceTimer, 10, true);
+  os_timer_arm(&_bounceTimer, 30, true);
 }
 
 void BounceEffect::stop(void)
@@ -82,7 +85,7 @@ void BounceEffect::setUnholdFunction(unholdcallback *callback, void *arg)
 
 ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
 {
-  self->_value += self->_direction;
+  self->_value += self->_direction; 
 
   if (self->_value > 1023 || self->_value < 1) {
     self->_direction = self->_direction * (-1);
@@ -90,36 +93,34 @@ ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
   }
 
   if (self->_originalMode == INPUT) {
-    if (self->_value < 1000) {
+    if (self->_value < self->_bounceUnholdLimit) {
+      
       if (!self->_configuredAsOut) {
-        if (self->_unholdSelected) {
-          self->_unholdCountTemp ++;
-          if (self->_unholdCountTemp >= self->_unholdCount) {
-            // ---->> trigger unhold
-            if (self->unholdCallback(self->unholdCallbackArg, self->_pin)) {
-              self->stop();
-              return;
-            }
-          }
-        }
-
         pinMode(self->_pin, OUTPUT);
         self->_configuredAsOut = true;
       }
+
       analogWrite(self->_pin, self->_value);
     } else {
       if (self->_configuredAsOut) {
         pinMode(self->_pin, INPUT);
         self->_configuredAsOut = false;
-      }
-      if (!self->_unholdSelected && digitalRead(self->_pin) != self->_buttonDefLevel)
-        self->_unholdSelected = true;
+      }  
+      
+      if (digitalRead(self->_pin) != self->_buttonDefLevel && ++self->_unholdCountTemp >= self->_unholdCount) { 
+        Serial.println("---> unhld <---");
+        // ---->> trigger unhold
+        if (self->unholdCallback(self->unholdCallbackArg, self->_pin)) {
+          self->stop();
+          return;
+        }
+      } 
     }
   } else {
     analogWrite(self->_pin, self->_value);
   }
 
   #if BOUNCE_FX_DEBUG
-  Serial.println(self->_value);
+  //Serial.println(self->_value);
   #endif
 }

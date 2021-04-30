@@ -25,11 +25,22 @@
 ////////////////////////
 
 /*
+  Enable/disable serial debug
+*/
+#ifndef SERIAL_DEBUG
+#define SERIAL_DEBUG 1
+#endif
+
+/*
   Set the amount of buttons you must use
   Default value is 6
   Obs. A number gratter than 6 takes no effect, will assime 6 
 */
-#define BUTTON_COUNT 1
+#if SERIAL_DEBUG
+#define BUTTON_COUNT 5
+#else
+#define BUTTON_COUNT 6
+#endif
 
 /*
   Stores button`s class handler
@@ -51,8 +62,11 @@ FlashMan *_flash;
   Using 6 pins to handle 6 touch buttons
   Default value is {1, 4, 10, 12, 13, 14}
 */
-int _buttonPin[1] = {14}; // {1, 4, 10, 12, 13, 14};
-
+#if SERIAL_DEBUG
+int _buttonPin[5] = {4, 10, 14, 12, 13};
+#else
+int _buttonPin[6] = {1, 4, 10, 14, 12, 13};
+#endif
 /*
   Stores configured mode for each button
 */
@@ -61,7 +75,11 @@ int _buttonMode[6] = {0xFF}; // Disabled by default
 /*
   Stores output pin config
 */
+#if SERIAL_DEBUG
+int _outputPin[5] = {0, 0, 5, 15, 16};
+#else
 int _outputPin[5] = {0, 3, 5, 15, 16};
+#endif
 
 /*
   Configure if output pin is dimmable or not
@@ -83,13 +101,6 @@ uint8_t dimmerButtonIndex = 0xFF;
 */
 uint8_t dimmerHoldButton = 0xFF;
 
-
-/*
-  Enable/disable serial debug
-*/
-#ifndef SERIAL_DEBUG
-#define SERIAL_DEBUG 1
-#endif
 
 /*
   Enable ALL libs debug
