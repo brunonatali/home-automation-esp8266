@@ -20,6 +20,7 @@
         "utility": "cpp",
         "cstddef": "cpp",
         "xiosbase": "cpp",
-        "xlocale": "cpp"
+        "xlocale": "cpp",
+        "iosfwd": "cpp"
     }
 }

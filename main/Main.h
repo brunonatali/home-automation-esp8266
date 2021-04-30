@@ -15,6 +15,7 @@
 
 
 // Personal LIBs
+#include "MCommunication.h"
 #include "GenericCallbacks.h"
 #include "TouchButtonModule.h"
 #include "FlashMan.h"
@@ -56,6 +57,13 @@ Lighter *_outputPinController[5];
  * 
 */
 FlashMan *_flash;
+
+
+/**
+ * 
+*/
+MCommunication *_communication;
+
 
 /*
   Store touch buttons pins

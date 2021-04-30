@@ -27,13 +27,13 @@ License (MIT license):
 //uint8_t *generalBuffer[100] = {0x00};
 
 
-String ssid;
+//String ssid;
 
-String wifiPass;
+//String wifiPass;
 
 //ESP8266WebServer server(80);
 
-WiFiServer wifiServer(10000);
+//WiFiServer wifiServer(10000);
 
 /*
 void handleRoot() {
@@ -203,59 +203,10 @@ void setup()
   Serial.println(system_get_vdd33());
 #endif
 
-  _flash = new FlashMan();
-  
-  //if (!checkFlash())
-  //  reboot(true);
-  /*
-    this->getWifiMode();
-    this->getButtonHoldTO();
-    this->getButtonHoldPeriod();
-    this->getSsid();
-    this->getWifiPass();
+  /**
+   * Instantiate flash handler
   */
-
-  uint8_t wifiMode = _flash->getWifiMode();
-
-delay(1000);
-  Serial.print("Wifi mde:");
-  Serial.print(wifiMode);
-  Serial.print("-");
-  Serial.println(WIFI_OPERATION_MODE_AP);
-  WiFi.mode(WIFI_OFF);
-delay(1000);
-  if (wifiMode == WIFI_OPERATION_MODE_AP) {
-    WiFi.mode(WIFI_AP);
-    while (WiFi.getMode() != WIFI_AP) {
-      delay(50);
-    }
-    if(!WiFi.softAPConfig(IPAddress(192, 168, 5, 1), IPAddress(192, 168, 5, 1), IPAddress(255, 255, 255, 0))){
-      Serial.println("AP Config Failed");
-    }
-
-    WiFi.softAP(_flash->getSsid(), _flash->getWifiPass());
-    IPAddress myIP = WiFi.softAPIP();
-
-    Serial.print("AP IP address: ");
-    Serial.println(myIP);
-    //server.on("/", handleRoot);
-    //server.begin();
-    Serial.println("HTTP server started");
-  } else if (wifiMode == WIFI_OPERATION_MODE_CLIENT) {
-
-  }
-  
-delay(1000);
-  Serial.print("Wifi status:");
-  Serial.println(WiFi.status());
-delay(1000);
-
-  WiFi.printDiag(Serial);
-  delay(5000);
-
-  wifiServer.begin();
-  delay(1000);
-
+  _flash = new FlashMan();
   
   Serial.print("btn led PWM:");
   Serial.println(analogRead(2));
@@ -327,6 +278,24 @@ delay(1000);
 #endif
 
 
+  _communication = new MCommunication(_flash->getSsid(), _flash->getWifiPass());
+
+  uint8_t wifiMode = _flash->getWifiMode();
+
+delay(1000);
+  Serial.print("Wifi mde:");
+  Serial.print(wifiMode);
+  Serial.print("-");
+  Serial.println(WIFI_OPERATION_MODE_AP);
+delay(1000);
+
+//_communication->getWifiStatus();
+
+_communication->setWifiMode(wifiMode);
+
+  //wifiServer.begin();
+  //delay(1000);
+
 
   Serial.setDebugOutput(true);
 }
@@ -337,6 +306,7 @@ void loop()
 {
   // server.handleClient();
 
+  /*
     WiFiClient client = wifiServer.available();
  
   if (client) {
@@ -357,6 +327,7 @@ void loop()
     client.stop();
     Serial.println("Client disconnected");
   }
+  */
 }
 
 void reboot(bool critical)
