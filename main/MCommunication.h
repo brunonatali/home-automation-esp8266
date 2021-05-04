@@ -57,6 +57,10 @@ class MCommunication
 
     void setWifiSerialDebug(bool set = true);
 
+    ESP8266WebServer *webServer;
+
+    String localWebPage;
+
     //unholdcallback unholdCallback;
     //void *unholdCallbackArg;
 
@@ -69,6 +73,11 @@ class MCommunication
     String WifiSssid;
     String WifiPassword;
 
-    //static ICACHE_RAM_ATTR void bounceCallback(MCommunication* self);
 };
+
+/**
+ * This function was declaredoutside class because ESP8266WebServer do not suport classes
+ * stored in main.ino
+ * */ 
+void handleWebServerRequest(void);
 #endif

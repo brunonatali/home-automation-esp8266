@@ -14,6 +14,11 @@ typedef bool (*unholdcallback)(void *, uint16_t number);
 
 typedef bool (*holdcallback)(void *, uint16_t number);
 
+
+typedef void (*setconfigcallback)(void *, uint16_t number);
+
+typedef void (*getconfigcallback)(void *, uint16_t number);
+
 class GenericCallbacks
 {
   public:

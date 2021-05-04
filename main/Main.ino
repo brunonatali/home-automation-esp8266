@@ -24,25 +24,10 @@ License (MIT license):
 */
 #include "Main.h"
 
-//uint8_t *generalBuffer[100] = {0x00};
-
-
-//String ssid;
-
-//String wifiPass;
-
-//ESP8266WebServer server(80);
+// ESP8266WebServer server(80);
 
 //WiFiServer wifiServer(10000);
 
-/*
-void handleRoot() {
-  server.send(200, "text/html", "<h1>You are connected</h1>");
-  #if SERIAL_DEBUG
-    Serial.println("Client requested root");
-  #endif
-}
-*/
 
 ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 {
@@ -182,6 +167,20 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
   _buttonMode[buttonIndex] = mode;
 }
 
+void handleWebServerRequest(void)
+{
+  Serial.println("root page requested");
+    String response = "";
+
+    if (_communication->webServer->arg("s") != "") {
+        response = "ok,s=";
+        response += _communication->webServer->arg("s");
+        _communication->webServer->send(200, "text/plain", response);
+    } else {
+        _communication->webServer->send(200, "text/html", _communication->localWebPage);
+    }
+}
+
 void setup()
 {
   delay(1000);
@@ -280,18 +279,16 @@ delay(1000);
 
   _communication = new MCommunication(_flash->getSsid(), _flash->getWifiPass());
 
-  uint8_t wifiMode = _flash->getWifiMode();
-
 delay(1000);
   Serial.print("Wifi mde:");
-  Serial.print(wifiMode);
+  Serial.print(_flash->getWifiMode());
   Serial.print("-");
   Serial.println(WIFI_OPERATION_MODE_AP);
 delay(1000);
 
 //_communication->getWifiStatus();
 
-_communication->setWifiMode(wifiMode);
+_communication->setWifiMode(_flash->getWifiMode());
 
   //wifiServer.begin();
   //delay(1000);
@@ -305,6 +302,8 @@ _communication->setWifiMode(wifiMode);
 void loop()
 {
   // server.handleClient();
+  if (_flash->getWifiMode() == WIFI_OPERATION_MODE_AP)
+    _communication->webServer->handleClient();
 
   /*
     WiFiClient client = wifiServer.available();

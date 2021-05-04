@@ -109,7 +109,6 @@ uint8_t dimmerButtonIndex = 0xFF;
 */
 uint8_t dimmerHoldButton = 0xFF;
 
-
 /*
   Enable ALL libs debug
 */
