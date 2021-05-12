@@ -41,6 +41,7 @@ class Lighter
     bool setDimmable(bool dimm);
     int getValue(void);
     bool getDimmable(void);
+    bool getLockDimm(void);
     
   private:
     int _pin;

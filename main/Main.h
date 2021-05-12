@@ -127,42 +127,26 @@ uint8_t dimmerHoldButton = 0xFF;
 //////////////////////// FUNCTIONS
 ////////////////////////
 
-bool setSsid(String ssid, bool setCrc = true);
 
-String getSsid(void);
 
-bool setWifiPassword(String *pass, bool setCrc = true);
+static ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber);
 
-String getWifiPassword(void);
+static ICACHE_RAM_ATTR void dimmerButtonClicked(void);
+
+void enableDimmerButton(void);
+
+void disableDimmerButton(void);
+
+void configureButton(uint8_t buttonIndex, uint8_t mode);
+
+String getButtonsJsonList(void);
+
+void handleWebServerRequest(void);
 
 /*
   Reboot system
   @var bool critical specify that reboot root cause is something critical
 */
 void reboot(bool critical = false);
-
-/*
-  Check flash integrity & format if needed
-*/
-bool checkFlash(void);
-
-/**
- * \brief Callculate fash contet CRC32
- * \param partition (1/2) 
- * \return crc32
-*/
-uint32_t calcFlashCrc(unsigned char partition);
-
-
-void uInt2Char(uint8_t (&buf)[4], uint32_t value);
-
-
-uint32_t char2UInt(const uint8_t (&buf)[4]);
-
-
-bool setFlashCrc(uint8_t partition);
-
-
-static ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber);
-static ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber);
-static ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber);

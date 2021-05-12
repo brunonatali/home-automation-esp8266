@@ -38,14 +38,21 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 
   if (_buttonMode[buttonNumber] >= 1 && _buttonMode[buttonNumber] <= 5) {
     uint8_t out = _buttonMode[buttonNumber] -1;
-    if (_outputPinController[out]->getValue()) {
-      _outputPinController[out]->off();
-    } else {
-      if (_outputPinController[out]->getDimmable())
+
+    if (_outputPinController[out]->getDimmable()){
+      if (_outputPinController[out]->getValue() > 1) {
+        _outputPinController[out]->on(); // Dimmer 100% is LOW state
+      } else {
         _outputPinController[out]->dimmer(_flash->getButtonDimmer(_buttonMode[buttonNumber]));
+      }
+    } else {
+      if (_outputPinController[out]->getValue())
+        _outputPinController[out]->off();
       else
         _outputPinController[out]->on();
     }
+
+    
   }
 }
 
@@ -57,20 +64,21 @@ ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
   // Enable dimmer button
   uint8_t tempBtnMode = _buttonMode[buttonNumber] -1;
   dimmerHoldButton = (tempBtnMode < 6 ? tempBtnMode : 0xFF);
+
   Serial.print("dimmable:");
   Serial.print(dimmerHoldButton);
   Serial.print("-");
   Serial.println(_outputPinController[dimmerHoldButton]->getDimmable());
-  if (_outputPinController[dimmerHoldButton]->getDimmable())
+  if (dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable())
     enableDimmerButton(); // Just enable dimmer if holded button is dimmable
 
   // Disable all other buttons
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
     if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
-  Serial.print("disable:");
-  Serial.print(btnCnt);
-  Serial.print("-");
-  Serial.println(_buttonMode[btnCnt]);
+      Serial.print("disable:");
+      Serial.print(btnCnt);
+      Serial.print("-");
+      Serial.println(_buttonMode[btnCnt]);
       _touchButton[btnCnt]->disable();
       _buttonMode[btnCnt] = 0xFE; // Disabled by software -> re-enable after interaction
     }
@@ -82,21 +90,28 @@ ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
   Serial.print("un-holded");
   Serial.println(buttonNumber);
 
-  // Disable dimmer button
-  disableDimmerButton();
-  dimmerHoldButton = 0xFF;
-
   // Re-enable disabled buttons on holded
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
     if (btnCnt != buttonNumber && _buttonMode[btnCnt] == 0xFE) { // Only enable previously disabled buttons
       _touchButton[btnCnt]->enable();
-      _buttonMode[btnCnt] = _flash->getButtonLightMode(buttonNumber + 1);
+      _buttonMode[btnCnt] = _flash->getButtonLightMode(btnCnt + 1);
     }
+  }
+
+  if (dimmerHoldButton != 0xFF) {
+    int dimmVal = _outputPinController[_buttonMode[buttonNumber] -1]->getValue();
+    if (_flash->getButtonDimmer(_buttonMode[buttonNumber]) != dimmVal) { // if dimmable & selected value is != on flash
+      _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmVal, false);
+    }
+
+    disableDimmerButton();
+    dimmerHoldButton = 0xFF;
   }
 }
 
-void dimmerButtonClicked()
+ICACHE_RAM_ATTR void dimmerButtonClicked(void)
 {
+  Serial.print("dimmerButtonClicked:");
   if (dimmerEnabled && dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable()) {
     uint16_t value = _outputPinController[dimmerHoldButton]->getValue();
 
@@ -108,27 +123,34 @@ void dimmerButtonClicked()
      * 4 - 816
      * 5 - 1020
     */
-    if (value > 819) 
-      value = 204;
+    if (value > 80) 
+      value = 20;
     else
-      value = value + 204;
+      value = value + 20;
 
     _outputPinController[dimmerHoldButton]->dimmer(value);
+    Serial.println(value);
+  } else {
+    
+  Serial.println("OK");
   }
 }
 
-void enableDimmerButton()
+void enableDimmerButton(void)
 {
+  Serial.print("enableDimmerButton:");
   if (dimmerButtonIndex == 0xFF)
     return;
 
   pinMode(_buttonPin[dimmerButtonIndex], INPUT);
   attachInterrupt(digitalPinToInterrupt(_buttonPin[dimmerButtonIndex]), &dimmerButtonClicked, RISING);
   dimmerEnabled = true;
+  Serial.println("OK");
 }
 
-void disableDimmerButton()
+void disableDimmerButton(void)
 {
+  Serial.print("disableDimmerButton");
   if (dimmerButtonIndex == 0xFF)
     return;
 
@@ -136,6 +158,7 @@ void disableDimmerButton()
   pinMode(_buttonPin[dimmerButtonIndex], OUTPUT);
   digitalWrite(_buttonPin[dimmerButtonIndex], LOW);
   detachInterrupt(_buttonPin[dimmerButtonIndex]);
+  Serial.println("OK");
 }
 
 void configureButton(uint8_t buttonIndex, uint8_t mode)
@@ -150,6 +173,15 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
       dimmerEnabled = false;
       disableDimmerButton();
       dimmerButtonIndex = 0xFF;
+    }
+
+    if (mode <= 6) {
+      for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+        if (_buttonMode[btnCnt] == mode) {
+          configureButton(btnCnt, 0xFF); // Disable previously configured button with desired output
+          break;
+        }
+      }
     }
 
     _touchButton[buttonIndex] = new TouchButtonModule(_buttonPin[buttonIndex], buttonIndex, _flash->getButtonLogicLevel(), _flash->getButtonHoldTO(), 30); //_flash->getButtonHoldPeriod()
@@ -167,17 +199,86 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
   _buttonMode[buttonIndex] = mode;
 }
 
+String getButtonsJsonList(void)
+{
+  String json = "";
+  uint8_t out, btn;
+
+  for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+    Serial.print('a');
+    Serial.print(btnCnt);
+    Serial.print('-');
+    Serial.print(_buttonMode[btnCnt]);
+    Serial.print('-');
+    Serial.print(btn);
+    Serial.print('-');
+    Serial.println(out);
+
+    btn = btnCnt +1;
+    out = _buttonMode[btnCnt] -1;
+    json = json + (json.length() ? ',' : ' ') + btn + 
+      ":{'d':" + (_buttonMode[btnCnt] < 6 ? _outputPinController[out]->getDimmable() : 0) + 
+      ",'dv':" + (_buttonMode[btnCnt] < 6 ? _flash->getButtonDimmer(_buttonMode[btnCnt]) : 0) +
+      ",'f':" + _buttonMode[btnCnt] +
+      ",'s':" + (_buttonMode[btnCnt] < 6 ? _outputPinController[out]->getValue() : 0) + '}';
+  }
+
+  return json;
+}
+
 void handleWebServerRequest(void)
 {
   Serial.println("root page requested");
     String response = "";
 
     if (_communication->webServer->arg("s") != "") {
-        response = "ok,s=";
-        response += _communication->webServer->arg("s");
+        uint16_t buttonNumber = _communication->webServer->arg("i").toInt() -1;
+
+        response = response + "{'b':" + _buttonMode[buttonNumber] + ",'r':";
+        if (_outputPinController[_buttonMode[buttonNumber] -1]->getValue() && _communication->webServer->arg("s").toInt()) {
+          response = response + "false}"; // If is already on, return error
+        } else {
+          buttonClicked(nullptr, buttonNumber);
+          response = response + "true}";
+        }
+
         _communication->webServer->send(200, "text/plain", response);
+    } else if (_communication->webServer->arg("f") != "" && _communication->webServer->arg("d") != "" && _communication->webServer->arg("dv") != "") {
+      uint16_t buttonNumber = _communication->webServer->arg("i").toInt() -1;
+      bool dimmable = _communication->webServer->arg("d").toInt();
+      uint16_t dimmerValue = _communication->webServer->arg("dv").toInt();
+      if (dimmerValue > 100)
+        dimmerValue = 100;
+      uint8_t btnMode = _communication->webServer->arg("f").toInt();
+
+      if (_buttonMode[buttonNumber] != btnMode)
+        configureButton(buttonNumber, btnMode);
+
+      uint8_t out = _buttonMode[buttonNumber] -1;
+
+      if (dimmable != _outputPinController[out]->getDimmable()) {
+        if (_outputPinController[out]->getLockDimm()) {
+          response = ",'r':false,'e':'dimm'}"; // Could not set dimmer value if output not accept dimmer
+        } else if (!_outputPinController[out]->setDimmable(dimmable)) {
+          response = ",'r':false}";
+        } 
+      } 
+      
+      if (!response.length())
+        if (_outputPinController[out]->getDimmable() && dimmerValue != _outputPinController[out]->getValue()) {
+          if (!_outputPinController[out]->dimmer(dimmerValue)) {
+            _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmerValue, false);
+            response = ",'r':true}";
+          } 
+        }
+
+      if (!response.length())
+        response = ",'r':true}";
+
+      _communication->webServer->send(200, "text/plain", '{' + getButtonsJsonList() + response);
     } else {
-        _communication->webServer->send(200, "text/html", _communication->localWebPage);
+
+        _communication->webServer->send(200, "text/html", _communication->localWebPage + getButtonsJsonList() + "};</script>");
     }
 }
 

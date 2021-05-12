@@ -52,15 +52,17 @@ bool Lighter::dimmer(int value)
     if (!_dimmable)
         return false;
 
-    if(value > 1023) {
-        value = 1023;
-    } else if (value < 2) {
-        off();
-        return true;
-    }
+    if(value > 100)
+        value = 100;
 
     _value = value;
-    analogWrite(_pin, value);   
+
+    value = value * 10.23;
+    if (value)
+        analogWrite(_pin, value); 
+    else   
+        digitalWrite(_pin, _onLevel);
+
     return true;
 }
 
@@ -84,6 +86,11 @@ int Lighter::getValue(void)
 bool Lighter::getDimmable(void)
 {
     return _dimmable;
+}
+
+bool Lighter::getLockDimm(void)
+{
+    return _lockDimm;
 }
 
 bool Lighter::setDimmable(bool dimm)
