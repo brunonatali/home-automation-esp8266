@@ -117,10 +117,12 @@ FlashMan::FlashMan()
      * SAVE CHANGES TO FLASH
     */
     if (EEPROM.commit()) {
-      // if (FlashMan::setFlashCrc(1) && FlashMan::setFlashCrc(2))
-
 #if SERIAL_DEBUG
-      Serial.println("Flash formatted successfully");
+      if (FlashMan::setFlashCrc(1) && FlashMan::setFlashCrc(2))
+        Serial.println("Flash formatted successfully");
+#else
+      FlashMan::setFlashCrc(1);
+      FlashMan::setFlashCrc(2);
 #endif
     } else {
 #if SERIAL_DEBUG
@@ -134,14 +136,14 @@ FlashMan::FlashMan()
       FlashMan::copyFlashPartition(1);
 
     // Load values to variables
-    this->getButtonHoldTO(true);
-    this->getButtonHoldPeriod(true);
-    this->getWifiMode(true);
-    this->getButtonLogicLevel(true);
+    (void) this->getButtonHoldTO(true);
+    (void) this->getButtonHoldPeriod(true);
+    (void) this->getWifiMode(true);
+    (void) this->getButtonLogicLevel(true);
     // Get buttons value
     for (uint8_t i = 1; i <= 6; i++) {
-      this->getButtonLightMode(i, true);
-      this->getButtonDimmer(i, true);
+      (void) this->getButtonLightMode(i, true);
+      (void) this->getButtonDimmer(i, true);
     }
   }
 }
@@ -258,11 +260,14 @@ bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
 
   if (FlashMan::writeByte(mode, 4 + button, 254 + button, setCrc)) {
     this->btnMode[button - 1] = mode;
+#if SERIAL_DEBUG
     Serial.println("OK");
     return true;
+#endif
   }
-
+#if SERIAL_DEBUG
   Serial.println("flaERR");
+#endif
   return false;
 }
 
@@ -284,11 +289,14 @@ bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
 
   if (FlashMan::writeByte(value, 10 + button, 260 + button, setCrc)) {
     this->btnDimmer[button - 1] = value;
+#if SERIAL_DEBUG
     Serial.println("OK");
     return true;
+#endif
   }
-
+#if SERIAL_DEBUG
   Serial.println("flaERR");
+#endif
   return false;
 }
 
