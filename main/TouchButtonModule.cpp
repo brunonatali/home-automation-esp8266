@@ -57,8 +57,11 @@ TouchButtonModule::TouchButtonModule(int pin, int buttonNumber, bool buttonDefLe
   pinMode(pin, INPUT);
   os_timer_setfn(&_buttonHoldTimer, reinterpret_cast<ETSTimerFunc*>(&TouchButtonModule::buttonTimerCallback), reinterpret_cast<void*>(this));
   this->enable();
+
+#if TOUCH_MODULE_DEBUG
   Serial.print("criado botao: ");
   Serial.println(_holdPeriod);
+#endif
 }
 
 TouchButtonModule::~TouchButtonModule(void)
@@ -89,31 +92,39 @@ ICACHE_RAM_ATTR bool TouchButtonModule::buttonUnholdCallback(TouchButtonModule* 
   self->bounceFx->stop();
   self->enable();
   self->_buttonHolded = false;
+#if TOUCH_MODULE_DEBUG
   Serial.println("passou funcao");
+#endif
   self->unholdCallback(self->unholdCallbackArg, self->_buttonNumber);
   return true;
 }
 
 ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* self)
 {
-  
+#if TOUCH_MODULE_DEBUG
   Serial.print("botao change:");
+#endif
   if (!self->_enabled)
     return;
-    
+#if TOUCH_MODULE_DEBUG
   Serial.print(self->_pin);
+#endif
 
   int currentBtnState = digitalRead(self->_pin);
-
+#if TOUCH_MODULE_DEBUG
   Serial.print(",");
   Serial.print(currentBtnState);
-
+#endif
 
   if (currentBtnState != self->_defaultLevel) { // Button touched
+#if TOUCH_MODULE_DEBUG
     Serial.println("touched");
+#endif
     os_timer_arm(&self->_buttonHoldTimer, self->_buttonHoldTimeOut, false); // Trigger hold timer once
   } else { // Button untouch -> release
+#if TOUCH_MODULE_DEBUG
     Serial.println("un-touched");
+#endif
     if (!self->_buttonHolded) {
       // --->> trigger click
       self->clickCallback(self->clickCallbackArg, self->_buttonNumber);
@@ -146,12 +157,14 @@ ICACHE_RAM_ATTR void TouchButtonModule::buttonTimerCallback(TouchButtonModule* s
 
 void TouchButtonModule::enable(void)
 {
-  
+#if TOUCH_MODULE_DEBUG
   Serial.print("enable:");
+#endif
   if (_enabled)
     return;
-    
+#if TOUCH_MODULE_DEBUG
   Serial.println("OK");
+#endif
 
   // Turn on button led
   if (_defaultLevel) {
@@ -167,12 +180,14 @@ void TouchButtonModule::enable(void)
 
 void TouchButtonModule::disable(void)
 {
-  
+#if TOUCH_MODULE_DEBUG
   Serial.print("dsabled: ");
+#endif
   if (!_enabled)
     return;
-    
+#if TOUCH_MODULE_DEBUG
   Serial.println("ok");
+#endif
 
   detachInterrupt(_pin);
   os_timer_disarm(&_buttonHoldTimer);

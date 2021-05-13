@@ -57,9 +57,10 @@ bool MCommunication::setWifiMode(uint8_t mode, String ssid, String password)
         WifiIpLocal = WiFi.softAPIP();
 
         WifiMode = mode;
-
+#if SERIAL_DEBUG
         Serial.print("AP IP address: ");
         Serial.println(WifiIpLocal);
+#endif
 
         webServer->on("/", handleWebServerRequest);
         webServer->begin(80);
@@ -102,8 +103,10 @@ bool MCommunication::restartWifi(void)
 
 void MCommunication::getWifiStatus(void)
 {
-  Serial.print("Wifi status:");
-  Serial.println(WiFi.status());
+#if SERIAL_DEBUG
+    Serial.print("Wifi status:");
+    Serial.println(WiFi.status());
+#endif
 }
 
 void setWifiSerialDebug(bool set)

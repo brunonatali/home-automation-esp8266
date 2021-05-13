@@ -31,11 +31,12 @@ License (MIT license):
 
 ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 {
+#if SERIAL_DEBUG  
   Serial.print("clicked:");
   Serial.print(buttonNumber);
   Serial.print("-");
   Serial.println(_buttonMode[buttonNumber]);
-
+#endif
   if (_buttonMode[buttonNumber] >= 1 && _buttonMode[buttonNumber] <= 5) {
     uint8_t out = _buttonMode[buttonNumber] -1;
 
@@ -58,27 +59,31 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
 
 ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
 {
+#if SERIAL_DEBUG
   Serial.print("holded:");
   Serial.println(buttonNumber);
-
+#endif
   // Enable dimmer button
   uint8_t tempBtnMode = _buttonMode[buttonNumber] -1;
   dimmerHoldButton = (tempBtnMode < 6 ? tempBtnMode : 0xFF);
-
+#if SERIAL_DEBUG
   Serial.print("dimmable:");
   Serial.print(dimmerHoldButton);
   Serial.print("-");
   Serial.println(_outputPinController[dimmerHoldButton]->getDimmable());
+#endif
   if (dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable())
     enableDimmerButton(); // Just enable dimmer if holded button is dimmable
 
   // Disable all other buttons
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
     if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
+#if SERIAL_DEBUG
       Serial.print("disable:");
       Serial.print(btnCnt);
       Serial.print("-");
       Serial.println(_buttonMode[btnCnt]);
+#endif      
       _touchButton[btnCnt]->disable();
       _buttonMode[btnCnt] = 0xFE; // Disabled by software -> re-enable after interaction
     }
@@ -111,7 +116,9 @@ ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
 
 ICACHE_RAM_ATTR void dimmerButtonClicked(void)
 {
+#if SERIAL_DEBUG  
   Serial.print("dimmerButtonClicked:");
+#endif
   if (dimmerEnabled && dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable()) {
     uint16_t value = _outputPinController[dimmerHoldButton]->getValue();
 
@@ -129,28 +136,37 @@ ICACHE_RAM_ATTR void dimmerButtonClicked(void)
       value = value + 20;
 
     _outputPinController[dimmerHoldButton]->dimmer(value);
+#if SERIAL_DEBUG
     Serial.println(value);
+#endif
   } else {
-    
+#if SERIAL_DEBUG
   Serial.println("OK");
+#endif
   }
 }
 
 void enableDimmerButton(void)
 {
+#if SERIAL_DEBUG
   Serial.print("enableDimmerButton:");
+#endif
   if (dimmerButtonIndex == 0xFF)
     return;
 
   pinMode(_buttonPin[dimmerButtonIndex], INPUT);
   attachInterrupt(digitalPinToInterrupt(_buttonPin[dimmerButtonIndex]), &dimmerButtonClicked, RISING);
   dimmerEnabled = true;
+#if SERIAL_DEBUG
   Serial.println("OK");
+#endif
 }
 
 void disableDimmerButton(void)
 {
+#if SERIAL_DEBUG
   Serial.print("disableDimmerButton");
+#endif
   if (dimmerButtonIndex == 0xFF)
     return;
 
@@ -158,7 +174,9 @@ void disableDimmerButton(void)
   pinMode(_buttonPin[dimmerButtonIndex], OUTPUT);
   digitalWrite(_buttonPin[dimmerButtonIndex], LOW);
   detachInterrupt(_buttonPin[dimmerButtonIndex]);
+#if SERIAL_DEBUG
   Serial.println("OK");
+#endif
 }
 
 void configureButton(uint8_t buttonIndex, uint8_t mode)
@@ -205,6 +223,7 @@ String getButtonsJsonList(void)
   uint8_t out, btn;
 
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+  #if SERIAL_DEBUG
     Serial.print('a');
     Serial.print(btnCnt);
     Serial.print('-');
@@ -213,6 +232,7 @@ String getButtonsJsonList(void)
     Serial.print(btn);
     Serial.print('-');
     Serial.println(out);
+  #endif
 
     btn = btnCnt +1;
     out = _buttonMode[btnCnt] -1;
@@ -228,7 +248,9 @@ String getButtonsJsonList(void)
 
 void handleWebServerRequest(void)
 {
+#if SERIAL_DEBUG
   Serial.println("root page requested");
+#endif
     String response = "";
 
     if (_communication->webServer->arg("s") != "") {
@@ -307,9 +329,11 @@ void setup()
    * Instantiate flash handler
   */
   _flash = new FlashMan();
-  
+
+#if SERIAL_DEBUG
   Serial.print("btn led PWM:");
   Serial.println(analogRead(2));
+#endif
 delay(500);
   
   pinMode(2, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
@@ -381,10 +405,12 @@ delay(1000);
   _communication = new MCommunication(_flash->getSsid(), _flash->getWifiPass());
 
 delay(1000);
+#if SERIAL_DEBUG
   Serial.print("Wifi mde:");
   Serial.print(_flash->getWifiMode());
   Serial.print("-");
   Serial.println(WIFI_OPERATION_MODE_AP);
+#endif
 delay(1000);
 
 //_communication->getWifiStatus();
@@ -402,32 +428,9 @@ _communication->setWifiMode(_flash->getWifiMode());
 // the loop function runs over and over again forever
 void loop()
 {
-  // server.handleClient();
   if (_flash->getWifiMode() == WIFI_OPERATION_MODE_AP)
     _communication->webServer->handleClient();
 
-  /*
-    WiFiClient client = wifiServer.available();
- 
-  if (client) {
-    Serial.println("Client connected");
-    while (client.connected()) {
- 
-      while (client.available()>0) {
-        char c = client.read();
-        
-        _touchButton[0]->enable();
-
-        Serial.write(c);
-      }
- 
-      delay(10);
-    }
- 
-    client.stop();
-    Serial.println("Client disconnected");
-  }
-  */
 }
 
 void reboot(bool critical)

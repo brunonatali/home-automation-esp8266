@@ -107,8 +107,7 @@ ICACHE_RAM_ATTR void BounceEffect::bounceCallback(BounceEffect* self)
         self->_configuredAsOut = false;
       }  
       
-      if (digitalRead(self->_pin) != self->_buttonDefLevel && ++self->_unholdCountTemp >= self->_unholdCount) { 
-        Serial.println("---> unhld <---");
+      if (digitalRead(self->_pin) != self->_buttonDefLevel && ++self->_unholdCountTemp >= self->_unholdCount) {
         // ---->> trigger unhold
         if (self->unholdCallback(self->unholdCallbackArg, self->_pin)) {
           self->stop();
