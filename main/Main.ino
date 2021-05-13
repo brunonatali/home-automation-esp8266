@@ -53,8 +53,10 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
         _outputPinController[out]->on();
     }
 
-    
+    return true;
   }
+
+  return false;
 }
 
 ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
@@ -106,7 +108,7 @@ ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
   if (dimmerHoldButton != 0xFF) {
     int dimmVal = _outputPinController[_buttonMode[buttonNumber] -1]->getValue();
     if (_flash->getButtonDimmer(_buttonMode[buttonNumber]) != dimmVal) { // if dimmable & selected value is != on flash
-      _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmVal, false);
+      _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmVal);
     }
 
     disableDimmerButton();
@@ -181,13 +183,23 @@ void disableDimmerButton(void)
 
 void configureButton(uint8_t buttonIndex, uint8_t mode)
 {
+#if SERIAL_DEBUG
+  Serial.print("Cfg Btn:");
+#endif
   delete _touchButton[buttonIndex]; // Delete current instance
 
   if (mode == 0xC8) { // dimmer
+#if SERIAL_DEBUG
+  Serial.print("dimmer");
+#endif
     dimmerButtonIndex = buttonIndex;
     disableDimmerButton();
   } else {
-    if (_buttonMode[buttonIndex] >= 0xC8) { // If this button was previously configured as dimmer
+#if SERIAL_DEBUG
+  Serial.print("md->");
+  Serial.print(mode);
+#endif
+    if (_buttonMode[buttonIndex] == 0xC8) { // If this button was previously configured as dimmer
       dimmerEnabled = false;
       disableDimmerButton();
       dimmerButtonIndex = 0xFF;
@@ -196,7 +208,7 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
     if (mode <= 6) {
       for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
         if (_buttonMode[btnCnt] == mode) {
-          configureButton(btnCnt, 0xFF); // Disable previously configured button with desired output
+          delete _touchButton[btnCnt]; // Disable previously configured button with desired output
           break;
         }
       }
@@ -220,9 +232,13 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
 String getButtonsJsonList(void)
 {
   String json = "";
-  uint8_t out, btn;
+  uint8_t btn;
+  bool dimmable;
 
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+    btn = btnCnt +1;
+    dimmable = (_buttonMode[btnCnt] < 6 ? _outputPinController[_buttonMode[btnCnt]]->getDimmable() : 0);
+
   #if SERIAL_DEBUG
     Serial.print('a');
     Serial.print(btnCnt);
@@ -231,16 +247,17 @@ String getButtonsJsonList(void)
     Serial.print('-');
     Serial.print(btn);
     Serial.print('-');
-    Serial.println(out);
+    Serial.println(_buttonMode[btnCnt]);
   #endif
 
-    btn = btnCnt +1;
-    out = _buttonMode[btnCnt] -1;
-    json = json + (json.length() ? ',' : ' ') + btn + 
-      ":{'d':" + (_buttonMode[btnCnt] < 6 ? _outputPinController[out]->getDimmable() : 0) + 
-      ",'dv':" + (_buttonMode[btnCnt] < 6 ? _flash->getButtonDimmer(_buttonMode[btnCnt]) : 0) +
-      ",'f':" + _buttonMode[btnCnt] +
-      ",'s':" + (_buttonMode[btnCnt] < 6 ? _outputPinController[out]->getValue() : 0) + '}';
+    if (json.length())
+      json += ',';
+
+    json = json + '\"' + btn + 
+      "\":{\"d\":" + dimmable + 
+      ",\"dv\":" + (dimmable ? _flash->getButtonDimmer(_buttonMode[btnCnt]) : 0) +
+      ",\"f\":" + _buttonMode[btnCnt] +
+      ",\"s\":" + (_buttonMode[btnCnt] < 6 ? (dimmable ? (_outputPinController[_buttonMode[btnCnt]]->getValue() ? 0 : 1) : _outputPinController[_buttonMode[btnCnt]]->getValue()) : 0) + '}';
   }
 
   return json;
@@ -249,57 +266,120 @@ String getButtonsJsonList(void)
 void handleWebServerRequest(void)
 {
 #if SERIAL_DEBUG
-  Serial.println("root page requested");
+  Serial.print("page:");
 #endif
     String response = "";
 
     if (_communication->webServer->arg("s") != "") {
-        uint16_t buttonNumber = _communication->webServer->arg("i").toInt() -1;
+      // Set button clicked
+      uint16_t buttonNumber = _communication->webServer->arg("i").toInt() -1;
+      uint8_t out = _buttonMode[buttonNumber] -1;
+#if SERIAL_DEBUG
+  Serial.print("s(");
+  Serial.print(buttonNumber);
+  Serial.print(")");
+  if (out < 5) {
+    Serial.print(_outputPinController[out]->getValue());
+    Serial.print("-");
+  }
+  Serial.print(_communication->webServer->arg("s").toInt());
+#endif
 
-        response = response + "{'b':" + _buttonMode[buttonNumber] + ",'r':";
-        if (_outputPinController[_buttonMode[buttonNumber] -1]->getValue() && _communication->webServer->arg("s").toInt()) {
-          response = response + "false}"; // If is already on, return error
-        } else {
-          buttonClicked(nullptr, buttonNumber);
-          response = response + "true}";
-        }
+      response = response + "{\"b\":" + _buttonMode[buttonNumber] + ",\"r\":";
+      if (buttonClicked(nullptr, buttonNumber)) {
+        response = response + "false}"; // If is already on, return error
+#if SERIAL_DEBUG
+  Serial.println(":Er");
+#endif
+      } else {
+        response = response + "true}";
+#if SERIAL_DEBUG
+  Serial.println(":OK");
+#endif
+      }
 
-        _communication->webServer->send(200, "text/plain", response);
+      _communication->webServer->send(200, "application/json", response);
     } else if (_communication->webServer->arg("f") != "" && _communication->webServer->arg("d") != "" && _communication->webServer->arg("dv") != "") {
+      // Configure button
       uint16_t buttonNumber = _communication->webServer->arg("i").toInt() -1;
       bool dimmable = _communication->webServer->arg("d").toInt();
       uint16_t dimmerValue = _communication->webServer->arg("dv").toInt();
       if (dimmerValue > 100)
         dimmerValue = 100;
       uint8_t btnMode = _communication->webServer->arg("f").toInt();
+      
+#if SERIAL_DEBUG
+  Serial.print("c(");
+  Serial.print(buttonNumber);
+  Serial.print(")f-");
+  Serial.print(_buttonMode[buttonNumber]);
+  Serial.print("->");
+  Serial.print(btnMode);
+  Serial.print("d-");
+  Serial.print(dimmable);
+  Serial.print("dv-");
+  Serial.print(dimmerValue);
+  Serial.print(":");
+#endif
 
       if (_buttonMode[buttonNumber] != btnMode)
         configureButton(buttonNumber, btnMode);
 
       uint8_t out = _buttonMode[buttonNumber] -1;
 
-      if (dimmable != _outputPinController[out]->getDimmable()) {
-        if (_outputPinController[out]->getLockDimm()) {
-          response = ",'r':false,'e':'dimm'}"; // Could not set dimmer value if output not accept dimmer
-        } else if (!_outputPinController[out]->setDimmable(dimmable)) {
-          response = ",'r':false}";
-        } 
-      } 
-      
-      if (!response.length())
-        if (_outputPinController[out]->getDimmable() && dimmerValue != _outputPinController[out]->getValue()) {
-          if (!_outputPinController[out]->dimmer(dimmerValue)) {
-            _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmerValue, false);
-            response = ",'r':true}";
+      if (out < 5) {
+        if (dimmable != _outputPinController[out]->getDimmable()) {
+#if SERIAL_DEBUG
+            Serial.print("setDimm-");
+#endif
+          if (_outputPinController[out]->getLockDimm()) {
+#if SERIAL_DEBUG
+            Serial.print("lock,");
+#endif
+            response = ",\"r\":false,\"e\":'dimm'}"; // Could not set dimmer value if output not accept dimmer
+          } else if (!_outputPinController[out]->setDimmable(dimmable)) {
+#if SERIAL_DEBUG
+            Serial.print("Err,");
+#endif
+            response = ",\"r\":false}";
           } 
         }
+      
+        if (!response.length())
+          if (_outputPinController[out]->getDimmable() && dimmerValue != _outputPinController[out]->getValue()) {
+#if SERIAL_DEBUG
+            Serial.print("DimmVal-");
+#endif
+            if (!_outputPinController[out]->dimmer(dimmerValue)) {
+#if SERIAL_DEBUG
+            Serial.print("Err,");
+#endif
+              response = ",\"r\":false}";
+            } else {
+              _flash->setButtonDimmer(_buttonMode[buttonNumber], dimmerValue);
+#if SERIAL_DEBUG
+            Serial.print("Rec,");
+#endif
+            }
+          }
+      }
 
-      if (!response.length())
-        response = ",'r':true}";
-
-      _communication->webServer->send(200, "text/plain", '{' + getButtonsJsonList() + response);
+      if (!response.length()) {
+#if SERIAL_DEBUG
+            Serial.println("OK");
+#endif
+        response = ",\"r\":true}";
+      } else {
+#if SERIAL_DEBUG
+            Serial.println("");
+#endif
+      }
+      _communication->webServer->send(200, "application/json", '{' + getButtonsJsonList() + response);
     } else {
-
+        // Show root web page
+#if SERIAL_DEBUG
+  Serial.println("root");
+#endif
         _communication->webServer->send(200, "text/html", _communication->localWebPage + getButtonsJsonList() + "};</script>");
     }
 }
@@ -345,10 +425,11 @@ delay(500);
  * OUTPUT PINS (LIGHT)
 */
 #if SERIAL_DEBUG
-  Serial.print("Initializing OUTPUTS: ");
+  Serial.print("\nInitializing OUTPUTS: ");
 #endif
 delay(1000);
 
+  bool pinDimmable;
   for (int outPinCnt = 0 ; outPinCnt < 5 ; outPinCnt++) {
 #if SERIAL_DEBUG
     if (outPinCnt)
@@ -358,12 +439,15 @@ delay(1000);
     Serial.print(_outputPin[outPinCnt]);
 #endif
 
+    pinDimmable = (_buttonPinDimmable[outPinCnt] && _flash->getButtonDimmer(outPinCnt + 1) != 0);
+
     _outputPinController[outPinCnt] = new Lighter(
       _outputPin[outPinCnt], 
       !_flash->getButtonLogicLevel(), 
       _flash->getButtonLogicLevel(), 
-      (_flash->getButtonDimmer(outPinCnt + 1) != 0 && _buttonPinDimmable[outPinCnt]), 
-      !_buttonPinDimmable[outPinCnt]
+      pinDimmable, 
+      !_buttonPinDimmable[outPinCnt],
+      (pinDimmable ? 1 : 0) // Start all lights off
     );
     delay(500);
   }
@@ -395,12 +479,10 @@ delay(1000);
 
     configureButton(btnCnt, tmpBtnMode);
     delay(500);
-    
   }
 #if SERIAL_DEBUG
     Serial.println("");
 #endif
-
 
   _communication = new MCommunication(_flash->getSsid(), _flash->getWifiPass());
 

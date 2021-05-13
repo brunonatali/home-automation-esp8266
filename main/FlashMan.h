@@ -77,7 +77,7 @@ License (MIT license):
   Enable/disable serial debug
 */
 #ifndef SERIAL_DEBUG
-#define SERIAL_DEBUG 1
+#define SERIAL_DEBUG 0
 #endif
 
 class FlashMan

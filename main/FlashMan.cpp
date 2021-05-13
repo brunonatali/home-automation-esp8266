@@ -94,7 +94,7 @@ FlashMan::FlashMan()
 #endif
     bool lightModeResult = true;
     for (uint8_t i = 1; i <= 6; i++)
-      bool lightModeResult = lightModeResult & FlashMan::setButtonLightMode(i, (i == 1 ? 0xC8 : i - 1), false); 
+      bool lightModeResult = lightModeResult & FlashMan::setButtonLightMode(i, (i == 6 ? 0xC8 : i - 1), false); 
 #if SERIAL_DEBUG
     if (lightModeResult)
       Serial.println("OK");

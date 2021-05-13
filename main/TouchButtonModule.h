@@ -37,7 +37,7 @@ extern "C"{
 
 
 #ifndef TOUCH_MODULE_DEBUG
-#define TOUCH_MODULE_DEBUG true
+#define TOUCH_MODULE_DEBUG 0
 #endif
 
 #if TOUCH_MODULE_DEBUG // Enable bounce debug

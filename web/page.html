@@ -143,7 +143,7 @@
     var cing=!1;
     var ming=!1;
     var bs={};
-    var cBt,btLn=5;
+    var cBt,btLn=6;
 
     var sb=()=>{sbes.display='block';};
     var sl=()=>{sb();dlds.display='block';sbe.onclick=()=>{return !1;};};
@@ -182,11 +182,12 @@
         itB((b)=>{
             b.addEventListener('change',(e)=>{
                 let mE=(btLn==6?e.target.id:e.target.id-1);
+                console.log(mE,bcfg[mE].f);
                 var rC=()=>{hl();mOs.zIndex=600;};
                 if(cing){
                     cBt=e.target.id;
                     let too,tod;
-                    for(let i=1;i<btLn;i++)too+="<option value='"+i+"' "+(bcfg[mE].f==i?'selected="selected"':'')+"'>"+i+"</option>";
+                    for(let i=1;i<=btLn;i++)too+="<option value='"+i+"' "+(bcfg[mE].f==i?'selected="selected"':'')+"'>"+i+"</option>";
                     for(let n=2;n<101;n++)tod+="<option value='"+n+"' "+(bcfg[mE].dv==n?'selected="selected"':'')+">"+n+"%</option>";
                     mO.innerHTML="Botão "+e.target.id+"<p>Saída:<select id='bOut' class='dd'>"+too+
                     "<option value='200' "+(bcfg[mE].f==200?'selected="selected"':'')+
@@ -276,6 +277,12 @@
             'd':1,
             'dv':60,
             'f':5,
+            's':0
+        },
+        6:{
+            'd':1,
+            'dv':60,
+            'f':6,
             's':0
         },
     };
