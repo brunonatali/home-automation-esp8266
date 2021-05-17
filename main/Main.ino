@@ -181,7 +181,7 @@ void disableDimmerButton(void)
 #endif
 }
 
-void configureButton(uint8_t buttonIndex, uint8_t mode)
+void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash)
 {
 #if SERIAL_DEBUG
   Serial.print("Cfg Btn:");
@@ -200,7 +200,6 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
   Serial.print(mode);
 #endif
     if (_buttonMode[buttonIndex] == 0xC8) { // If this button was previously configured as dimmer
-      dimmerEnabled = false;
       disableDimmerButton();
       dimmerButtonIndex = 0xFF;
     }
@@ -227,6 +226,8 @@ void configureButton(uint8_t buttonIndex, uint8_t mode)
   }
 
   _buttonMode[buttonIndex] = mode;
+  if (setFlash)
+    _flash->setButtonLightMode(buttonIndex + 1, mode);
 }
 
 String getButtonsJsonList(void)
@@ -418,7 +419,7 @@ delay(500);
   
   pinMode(2, OUTPUT);     // Initialize the LED_BUILTIN pin as an output
   digitalWrite(2, HIGH);  // Turn off light when plugedin 
-  //analogWrite(LED_BUILTIN, 500);
+  //analogWrite(LED_BUILTIN, 100);
 
 
 /**
@@ -447,7 +448,7 @@ delay(1000);
       _flash->getButtonLogicLevel(), 
       pinDimmable, 
       !_buttonPinDimmable[outPinCnt],
-      (pinDimmable ? 1 : 0) // Start all lights off
+      1 // Start all lights off
     );
     delay(500);
   }
@@ -477,7 +478,7 @@ delay(1000);
     Serial.println(tmpBtnMode);
 #endif
 
-    configureButton(btnCnt, tmpBtnMode);
+    configureButton(btnCnt, tmpBtnMode, false);
     delay(500);
   }
 #if SERIAL_DEBUG

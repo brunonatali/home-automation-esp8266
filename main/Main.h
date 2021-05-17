@@ -29,7 +29,7 @@
   Enable/disable serial debug
 */
 #ifndef SERIAL_DEBUG
-#define SERIAL_DEBUG 0
+#define SERIAL_DEBUG 1
 #endif
 
 /*
@@ -139,7 +139,7 @@ void enableDimmerButton(void);
 
 void disableDimmerButton(void);
 
-void configureButton(uint8_t buttonIndex, uint8_t mode);
+void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash = true);
 
 String getButtonsJsonList(void);
 
