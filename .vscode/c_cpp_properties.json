@@ -58,7 +58,7 @@
             "defines": [
                 "__ets__",
                 "ICACHE_FLASH",
-                "NONOSDK22x_190703=1",
+                "NONOSDK221=1",
                 "F_CPU=160000000L",
                 "LWIP_OPEN_SRC",
                 "TCP_MSS=536",
@@ -69,7 +69,7 @@
                 "ARDUINO_ARCH_ESP8266",
                 "ARDUINO_BOARD=\"ESP8266_GENERIC\"",
                 "LED_BUILTIN=2",
-                "FLASHMODE_DOUT",
+                "FLASHMODE_DIO",
                 "ESP8266",
                 "__DBL_MIN_EXP__=(-1021)",
                 "__UINT_LEAST16_MAX__=65535",
