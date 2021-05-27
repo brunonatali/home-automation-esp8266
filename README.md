@@ -20,6 +20,7 @@ Para o software utilizo a plataforma do Arduino para facilitar o código princip
         * [Flash](#flash)
         * [Saídas](#lighter-output)
         * [Touch](#touch-button)
+        * [Wifi Socket e Webserver](#wifi-socket-webserver)
     * [Página web](#web-page)
         * [Embarcando](#embedding-page)
 
@@ -99,9 +100,29 @@ main/BounceEffect.h
 #### Flash
 main/FlashMan.h
 #### Saídas
-main/Lighter.h
+main/Lighter.h 
 #### Touch
 main/TouchButtonModule.h
+#### Wifi Socket e Webserver
+Esse componente vai:
+- Criar um Access Point ou se conectar ao seu roteador Wi-Fi
+- Criar um socket em modo listen na porta 80
+- Aguardar e tratar requisições HTTP em http://192.168.4.1/ (mais informações)[#web-page]
+
+O uso básico é:
+- Acender ou apagar http://192.168.4.1/?s=1&i=<botao(1-6)>
+- Configurar http://192.168.4.1/?i=<botao>&f=<modo(1-5,200,255)>&d=<dimerizável(1|0)>&dv=<valor-do-dimmer(2-100)>
+
+Todas as respostas são em JSON, onde "b" é o botão, "r", é a resposta à solicitação e "e" caso haja alguma mensagem de erro:
+```json
+{
+    "b": 1,
+    "r": false,
+    "e": "dimm"
+}
+```
+
+Para maiores informações acesse o arquivo: main/MCommunication.h
 
 ### Página web
 [Em desenvolvimento]   

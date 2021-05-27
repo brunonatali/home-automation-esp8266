@@ -40,28 +40,92 @@ extern "C"{
 // Interactions
 #include <ESP8266WebServer.h>
 
+/**
+ * This class aims to manage the module's Wi-Fi stack, create and manage 
+ * communication sockets and provide a web page for communication 
+*/
 class MCommunication
 {
   public:
+    /**
+     * Instantiate class
+     * 
+     * @param ssid Wi-Fi SSID
+     * @param password Wi-Fi Password
+    */
     MCommunication(String ssid = "", String password = "");
+
+    /**
+     * Just turn off Wi-Fi on destructs
+    */
     ~MCommunication(void);
 
+    /**
+     * Configure Wi-Fi mode
+     * The Web page handler was designed on main.ino, reffer to ../main.ino->handleWebServerRequest()
+     * 
+     * @note Wi-Fi modes are Access Point and Client, but the last one was not implemented yet
+     * 
+     * @param mode Mode must be WIFI_OPERATION_MODE_AP | WIFI_OPERATION_MODE_CLIENT
+     * @param ssid
+     * @param password
+     * 
+     * @returns If could set mode
+    */
     bool setWifiMode(uint8_t mode, String ssid = "", String password = "");
+
+    /**
+     * Configures Wi-Fi IP for AP or static IP if is on client mode
+     * 
+     * @param local 
+     * @param gateway 
+     * @param subnet
+     * 
+     * @returns If could configure IP
+    */
     bool setWifiIp(IPAddress *local, IPAddress *gateway, IPAddress *subnet);
 
+    /**
+     * This will start Wi-Fi stack with previously configered settings 
+     * 
+     * @returns If it was started
+    */
     bool startWifi(void);
+
+    /**
+     * This will stop Wi-Fi stack
+     * 
+     * @returns If it was stoped
+    */
     bool stopWifi(void);
+
+    /**
+     * Restart will call stopWifi() and startWifi()
+     * 
+     * @returns if two was completed successfully
+    */
     bool restartWifi(void);
+
+    /**
+     * This function is only for debug propouses
+     * 
+     * @note if SERIAL_DEBUG is not declared or not 1, will do nothing
+    */
     void getWifiStatus(void);
 
-    void setWifiSerialDebug(bool set = true);
+    /**
+     * Just configure the Wi-Fi debug interface to Serial
+    */
+    void setWifiSerialDebug(void);
 
+    // Store ESP8266WebServer stack
     ESP8266WebServer *webServer;
 
+    /**
+     * This variable stores entire web page
+     * Before make software reffer to ../web/page.html and to ../web/page-min.html
+    */
     String localWebPage;
-
-    //unholdcallback unholdCallback;
-    //void *unholdCallbackArg;
 
   private:
     IPAddress WifiIpLocal;
@@ -77,6 +141,7 @@ class MCommunication
 /**
  * This function was declaredoutside class because ESP8266WebServer do not suport classes
  * stored in main.ino
+ * This function is relative to main project
  * */ 
 void handleWebServerRequest(void);
 #endif

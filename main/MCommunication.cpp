@@ -109,7 +109,7 @@ void MCommunication::getWifiStatus(void)
 #endif
 }
 
-void setWifiSerialDebug(bool set)
+void setWifiSerialDebug(void)
 {
     WiFi.printDiag(Serial);
     delay(1000);
