@@ -1,32 +1,28 @@
-/*
-Main program for ESP8266 home automation
-Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
-
-License (MIT license):
-  Permission is hereby granted, free of charge, to any person obtain®ing a copy
-  of this software and associated documentation files (the "Software"), to deal
-  in the Software without restriction, including without limitation the rights
-  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-  copies of the Software, and to permit persons to whom the Software is
-  furnished to do so, subject to the following conditions:
-
-  The above copyright notice and this permission notice shall be included in
-  all copies or substantial portions of the Software.
-
-  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-  THE SOFTWARE.
-
+/**
+ * Main program for ESP8266 home automation
+ * Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
+ * 
+ * License (MIT license):
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
 */
+
 #include "Main.h"
-
-// ESP8266WebServer server(80);
-
-//WiFiServer wifiServer(10000);
 
 
 ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber)
@@ -94,8 +90,10 @@ ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
 
 ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
 {
+#if SERIAL_DEBUG  
   Serial.print("un-holded");
   Serial.println(buttonNumber);
+#endif
 
   // Re-enable disabled buttons on holded
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
@@ -240,7 +238,7 @@ String getButtonsJsonList(void)
     btn = btnCnt +1;
     dimmable = (_buttonMode[btnCnt] < 6 ? _outputPinController[_buttonMode[btnCnt]]->getDimmable() : 0);
 
-  #if SERIAL_DEBUG
+#if SERIAL_DEBUG
     Serial.print('a');
     Serial.print(btnCnt);
     Serial.print('-');
@@ -249,7 +247,7 @@ String getButtonsJsonList(void)
     Serial.print(btn);
     Serial.print('-');
     Serial.println(_buttonMode[btnCnt]);
-  #endif
+#endif
 
     if (json.length())
       json += ',';
@@ -388,9 +386,8 @@ void handleWebServerRequest(void)
 void setup()
 {
   delay(1000);
-/*
-  SYSTEM INFO
-*/
+
+  // SYSTEM INFO
 #if SERIAL_DEBUG
   Serial.begin(115200); 
   Serial.println("");
@@ -423,7 +420,7 @@ delay(500);
 
 
 /**
- * OUTPUT PINS (LIGHT)
+ * INITIALIZE OUTPUT PINS (LIGHT)
 */
 #if SERIAL_DEBUG
   Serial.print("\nInitializing OUTPUTS: ");
@@ -455,7 +452,7 @@ delay(1000);
 
 
 /*
-  BUTTONS
+  INITIALIZE BUTTONS
 */
 #if SERIAL_DEBUG
   Serial.print("\nInitializing buttons: ");
@@ -511,6 +508,7 @@ _communication->setWifiMode(_flash->getWifiMode());
 // the loop function runs over and over again forever
 void loop()
 {
+  // Handle HTTP server  
   if (_flash->getWifiMode() == WIFI_OPERATION_MODE_AP)
     _communication->webServer->handleClient();
 
@@ -525,30 +523,3 @@ void reboot(bool critical)
 #endif
   ESP.restart(); 
 }
-
-/*
-bool calcCrcFlash(unsigned char partition)
-{
-  unsigned int crcLimit = 504;
-  unsigned int flashCounter;
-  unsigned int crcCounter;
-
-  if (partition == 1) {
-    flashCounter = 0;
-    crcCounter = 504;
-  }
-  else if (partition == 2) {
-    flashCounter = 250;
-    crcCounter = 508;
-  } else {
-    return false;
-  }
-
-  unsigned short crc = getFlashCrc(partition);
-
-  for (unsigned char i = 0 ; i < 4 ; i++) {
-    EEPROM.write(i, 0x00);
-    crcCounter ++;
-  }
-}
-*/
