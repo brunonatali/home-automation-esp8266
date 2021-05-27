@@ -21,6 +21,7 @@ Para o software utilizo a plataforma do Arduino para facilitar o código princip
         * [Saídas](#lighter-output)
         * [Touch](#touch-button)
     * [Página web](#web-page)
+        * [Embarcando](#embedding-page)
 
 
 ## Serve para mim
@@ -110,3 +111,14 @@ O backend possui apenas uma única rota (/), isso foi decidido assim para fazer 
 ![config-page](/teste/img/config-modal-git.png)
 
 A documentação da página pode ser encontrada em web/page.html. Vale ressaltar que que todas as variáveis foram cridas visando primordialmente o baixo consumo da flash, então elas tem nicknames relativos aos nomes ideais para boas práticas de programação.   
+
+#### Embarcando
+Para embarca a página web no código, você precisara remover:
+- Comentários
+- Tabulações (4 espaços) e caracteres de nova linha (\n)
+- Escapar escapes (\ -> \\)
+- Remover o final do código onde foi marcado
+
+Após tudo removido, basta copiar o conteúdo e colar dentro do valor da variável 'localWebPage' atribuida durante a contrução da classe MCommunication em MCommunication.cpp   
+
+Obs. Eu sei que da trabalho, um script para execução automática desse procedimento está sendo desenvolvido.
