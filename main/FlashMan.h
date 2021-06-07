@@ -70,7 +70,7 @@
   Button hold period
   Indicates time in miliseconds that button still in holded state before return to default
 */
-#define BUTTON_HOLD_PERIOD 15 // 15 sec
+#define BUTTON_HOLD_PERIOD 30 // 30 sec
 
 /*
   Enable/disable serial debug

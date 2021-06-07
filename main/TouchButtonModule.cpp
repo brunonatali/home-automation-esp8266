@@ -1,13 +1,20 @@
 #include "TouchButtonModule.h"
 
-TouchButtonModule::TouchButtonModule(int pin, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod) {
+TouchButtonModule::TouchButtonModule(
+  int pin, 
+  int buttonNumber, 
+  bool buttonDefLevel, 
+  int buttonHoldTimeOut, 
+  int buttonHoldPeriod
+) {
   _pin = pin;
   _buttonNumber = buttonNumber;
   _buttonHoldTimeOut = buttonHoldTimeOut * 1000;
   _defaultLevel = buttonDefLevel;
   _holdPeriod = buttonHoldPeriod * 1000;
 
-  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); // Satart bouce with 3 cycles to unbounce (unhold)
+  // Satart bouce with 3 cycles to unbounce (unhold)
+  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); 
 
   // bounceFx->setUnholdFunction(reinterpret_cast<unholdcallback*>(&TouchButtonModule::buttonUnholdCallback), static_cast<void*>(this));
 

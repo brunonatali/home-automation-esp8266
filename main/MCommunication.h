@@ -139,9 +139,11 @@ class MCommunication
 };
 
 /**
- * This function was declaredoutside class because ESP8266WebServer do not suport classes
+ * This functions was declared outside class because ESP8266WebServer do not suport classes
  * stored in main.ino
  * This function is relative to main project
  * */ 
-void handleWebServerRequest(void);
+void handleWebServerRoot(void);
+void handleWebServerSetOnOff(void);
+void handleWebServerConfig(void);
 #endif

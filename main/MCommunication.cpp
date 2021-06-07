@@ -62,10 +62,14 @@ bool MCommunication::setWifiMode(uint8_t mode, String ssid, String password)
         Serial.println(WifiIpLocal);
 #endif
 
-        webServer->on("/", handleWebServerRequest);
+        webServer->on("/", handleWebServerRoot);
+        webServer->on("/set/", handleWebServerSetOnOff);
+        webServer->on("/cfg/", handleWebServerConfig);
+
         webServer->begin(80);
 
     } else if (mode == WIFI_OPERATION_MODE_CLIENT) {
+
 
     }
 

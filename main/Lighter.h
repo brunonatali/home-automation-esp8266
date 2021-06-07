@@ -33,7 +33,7 @@ class Lighter
     bool _buttonHolded = false;
     
   public:
-    Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true, int startValue = 0);
+    Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true);
     void on(void);
     void off(void);
     bool dimmer(int value);

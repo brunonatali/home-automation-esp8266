@@ -26,25 +26,26 @@ License (MIT license):
 #include "Lighter.h"
 
 
-Lighter::Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm, int startValue)
+Lighter::Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm)
 {
     _pin = pin;
     _onLevel = onLevel;
     _offLevel = offLevel;
-    _value = startValue;
     _dimmable = dimmable;
     _lockDimm = lockDimm;
 
     pinMode(_pin, OUTPUT);
 
-    if (_value) {
-        if (_value > 1)
-            dimmer(_value);
-        else
-            on();
-    } else {
-        off();
-    }
+    off();
+}
+
+bool Lighter::setDimmable(bool dimm)
+{
+    if (dimm && _lockDimm) // set && lock
+        return false;
+
+    _dimmable = dimm;
+    return true;
 }
 
 bool Lighter::dimmer(int value)
@@ -52,29 +53,27 @@ bool Lighter::dimmer(int value)
     if (!_dimmable)
         return false;
 
-    if(value > 100)
+    if (value < 2)
+        value = 2;
+    else if (value > 100)
         value = 100;
 
     _value = value;
 
-    value = value * 10.23;
-    if (value)
-        analogWrite(_pin, value); 
-    else   
-        digitalWrite(_pin, _onLevel);
+    analogWrite(_pin, value * 10.23);
 
     return true;
 }
 
 void Lighter::on(void)
 {
-    _value = 1;
+    _value = _onLevel;
     digitalWrite(_pin, _onLevel);
 }
 
 void Lighter::off(void)
 {
-    _value = 0;
+    _value = _offLevel;
     digitalWrite(_pin, _offLevel);
 }
 
@@ -91,13 +90,4 @@ bool Lighter::getDimmable(void)
 bool Lighter::getLockDimm(void)
 {
     return _lockDimm;
-}
-
-bool Lighter::setDimmable(bool dimm)
-{
-    if (_lockDimm && !_dimmable)
-        return false;
-
-    _dimmable = dimm;
-    return true;
 }

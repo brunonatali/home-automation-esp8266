@@ -72,7 +72,7 @@ int _buttonPin[6] = {1, 4, 10, 14, 12, 13};
 #endif
 
 // Stores configured mode for each button
-int _buttonMode[6] = {0xFF}; // Disabled by default
+int _buttonMode[6] = {0xFA}; // Not configured
 
 
 // Stores output pin config
@@ -194,6 +194,30 @@ void disableDimmerButton(void);
 void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash = true);
 
 /**
+ * Returns buttons status ON or OFF
+ * 
+ * @param buttonIndex 
+ * @param dimmable [1 | 2] If dimmable already calculated 
+ * 
+ * @returns 1 | 0 
+*/
+bool getSimpleOnOffButtonValue(uint8_t buttonIndex, uint8_t dimmable = 2);
+
+/**
+ * Return object with configured info of provided buttonindex
+ * 
+ * @param buttonindex
+ * 
+ * @returns Object {
+ *    "d": <int> 0|1 [dimmerable],
+ *    "dv": <int> 2 - 100 [dimmer value],
+ *    "f": <int> 1 - 5 | C8 | FE | FF[mode],
+ *    "s": <int> 0|1 [off | on]
+ * }
+*/
+String getButtonJsonConfig(uint8_t buttonindex);
+
+/**
  * Builds a list of buttons coonfig
  * 
  * @returns JSON formatted like: 
@@ -213,7 +237,10 @@ String getButtonsJsonList(void);
  * 
  * @note requests must be done by root route
 */
-void handleWebServerRequest(void);
+void handleWebServerRoot(void);
+void handleWebServerSetOnOff(void);
+void handleWebServerConfig(void);
+
 
 /**
  * Reset hardware

@@ -248,7 +248,8 @@ bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
     Serial.print("setButtonLightMode: ");
 #endif
 
-  if (button > 6 || (mode > 6 && (mode != 0xC8 && mode != 0xFE && mode != 0xFF))) { // C8 - dimmer, FE - sw disabled, FF - hard disabled
+  // C8 - dimmer, FE - sw disabled, FF - hard disabled
+  if (button > 6 || (mode > 6 && (mode != 0xC8 && mode != 0xFE && mode != 0xFF))) { 
 #if SERIAL_DEBUG
     Serial.print("ERROR ");
     Serial.print(button);
@@ -262,8 +263,8 @@ bool FlashMan::setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc)
     this->btnMode[button - 1] = mode;
 #if SERIAL_DEBUG
     Serial.println("OK");
-    return true;
 #endif
+    return true;
   }
 #if SERIAL_DEBUG
   Serial.println("flaERR");
@@ -277,7 +278,7 @@ bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
     Serial.print("setButtonDimmer: ");
 #endif
 
-  if (button > 6) {
+  if (button == 0 || button > 6 || value > 100) {
 #if SERIAL_DEBUG
     Serial.print("ERROR ");
     Serial.print(button);
