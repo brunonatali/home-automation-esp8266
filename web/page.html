@@ -238,12 +238,25 @@
 
         /* MODAL */
         .mo {
-            display:none;
+            display: none;
             background: #fdbf39;
             z-index: 600;
             width: 75vw;
             border-radius: 20px;
             padding: 5vw;
+        }
+
+        /* NOTIFICATION */
+        .no {
+            top: -100vh;
+            max-width: 95vw;
+            padding: 15px;
+            transition: all 1s linear;
+            border-radius: 5px;
+        }
+        .nos {
+            z-index: 700;
+            top: 5vh !important;
         }
 
         /* RESPONSIVE LAYOUT & ANIMATION */
@@ -313,6 +326,18 @@
         Note. Modal content must be placed by demand
     -->
     <div id='mo'class='pa c mo'></div>
+
+    <!--
+        Modal element. 
+        Note. Modal content must be placed by demand
+    -->
+    <div id='mo'class='pa c mo'></div>
+
+    <!--
+        Notification element. 
+        Notify sucess or error messages
+    -->
+    <div id='msg'class='pa c no'></div>
 </body>
 </html>
     
@@ -356,7 +381,7 @@
     var hb=()=>{sbes.display='none';sbe.onclick=()=>{return !1;};if(cing)d.getElementById(cBt).checked=!1};
 
     /**
-     * Hide loader, deciding if enable or not background click
+     * Hide loader, deciding if enable or not the background click
     */
     var hl=()=>{if(!ming)hb();else sbe.onclick=hm;dlds.display='none';};
 
@@ -399,6 +424,17 @@
      * - Buttons are disbled if gratter than 200
     */
     var pBt=()=>{itB((b,i)=>{if(bcfg[++i].f<200)b.checked=bcfg[i].s;else b.nextSibling.classList.add('swld');});};
+
+    /**
+     * 
+    */
+    var msg=(m,i)=>{
+        var e=d.getElementById('msg');
+        e.innerText=m;
+        e.style.backgroundColor=(i?'#67fa67':'#ff7b64');
+        e.classList.add('nos');
+        setTimeout(()=>{e.classList.remove('nos');},(i?3000:5000));
+    } 
 
     /**
      * AJAX requests
@@ -464,17 +500,27 @@
                     d.getElementById('sbc').onclick=()=>{
                         sl();
                         mOs.zIndex=300;
-                        req('/?i='+e.target.id+'&f='+d.getElementById('bOut').value+'&d='+(cKB.checked?1:0)+'&dv='+d.getElementById('bDv').value,(x,y)=>{
+                        req('/cfg/?i='+e.target.id+'&f='+d.getElementById('bOut').value+'&d='+(cKB.checked?1:0)+'&dv='+d.getElementById('bDv').value,
+                        (x,y)=>{
                             rC();
                             let j=JSON.parse(x);
-                            if(j.r==1)hm();
+                            if(j.r==1){msg('Configurado',1);hm();bcfg[e.target.id]=j.d;}
+                            else if(typeof j.e != 'undefined'){hl();msg('err:'+j.e,0);}
+                            else{hl();msg('unknown error',0);}
                             pBt();
                         },rC);
                     };
                 }else{ // Just turn on / off the lights
                     if(bcfg[mE].f>199){e.target.checked=!1;return;}
                     sl();
-                    req('/?i='+e.target.id+'&s='+(e.target.checked?1:0),(x,y)=>{console.log(x,y);hl();},rC);
+                    req('/set/?i='+e.target.id+'&s='+(e.target.checked?1:0),
+                    (x,y)=>{
+                        let j=JSON.parse(x);
+                        if(j.r==1){msg('OK',1);bcfg[e.target.id].s=j.s;d.getElementsByClassName("swc")[e.target.id - 1].checked=j.s;}
+                        else if(typeof j.e != 'undefined')msg('err:'+j.e,0);
+                        else msg('unknown error',0);
+                        hl();
+                    },rC);
                 }
             },!1);
         });
