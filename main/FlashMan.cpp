@@ -292,8 +292,8 @@ bool FlashMan::setButtonDimmer(uint8_t button, uint8_t value, bool setCrc)
     this->btnDimmer[button - 1] = value;
 #if SERIAL_DEBUG
     Serial.println("OK");
-    return true;
 #endif
+    return true;
   }
 #if SERIAL_DEBUG
   Serial.println("flaERR");
