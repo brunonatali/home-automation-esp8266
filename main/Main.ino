@@ -261,7 +261,7 @@ bool getSimpleOnOffButtonValue(uint8_t buttonIndex, uint8_t dimmable)
       1 : 
       0
     ) : 
-    !_outputPinController[_buttonMode[buttonIndex]]->getValue();
+    !_outputPinController[_buttonMode[buttonIndex] - 1]->getValue();
 }
 
 String getButtonJsonConfig(uint8_t buttonindex)
@@ -370,15 +370,13 @@ void handleWebServerSetOnOff(void)
   bool clickResult = buttonClicked(nullptr, buttonIndex);
   bool buttonStatus = getSimpleOnOffButtonValue(buttonIndex);
 
+#if SERIAL_DEBUG
   if (clickResult) {
-#if SERIAL_DEBUG
     Serial.println(":OK");
-#endif
   } else {
-#if SERIAL_DEBUG
     Serial.println(":Er");
-#endif
   }
+#endif
 
   _communication->webServer->send(
     200, 
@@ -494,24 +492,22 @@ void handleWebServerConfig(void)
       }
     }
   }
-
-
     
 #if SERIAL_DEBUG
-    Serial.print("c(");
-    Serial.print(buttonIndex);
-    Serial.print(")f-");
-    Serial.print(_buttonMode[buttonIndex]);
-    Serial.print("->");
-    Serial.print(btnMode);
-    if (outIndex < 5) {
-      Serial.print("d-");
-      Serial.print(dimmable);
-      if (result && dimmable) {
-        Serial.print("dv-");
-        Serial.print(dimmerValue);
-      }
+  Serial.print("c(");
+  Serial.print(buttonIndex);
+  Serial.print(")f-");
+  Serial.print(_buttonMode[buttonIndex]);
+  Serial.print("->");
+  Serial.print(btnMode);
+  if (outIndex < 5) {
+    Serial.print("d-");
+    Serial.print(dimmable);
+    if (result && dimmable) {
+      Serial.print("dv-");
+      Serial.print(dimmerValue);
     }
+  }
 #endif
 
     _communication->webServer->send(
