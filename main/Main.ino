@@ -43,10 +43,11 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonIndex)
         _outputPinController[out]->dimmer(_flash->getButtonDimmer(_buttonMode[buttonIndex]));
       }
     } else {
-      if (_outputPinController[out]->getValue())
-        _outputPinController[out]->off();
-      else
+      if (_outputPinController[out]->getValue() == HIGH) {
         _outputPinController[out]->on();
+      } else {
+        _outputPinController[out]->off();
+      }
     }
 
     return true;
@@ -268,7 +269,7 @@ String getButtonJsonConfig(uint8_t buttonindex)
   bool dimmable = (_buttonMode[buttonindex] < 6 ? _outputPinController[_buttonMode[buttonindex] - 1]->getDimmable() : 0);
 
   return "{\"d\":" + String(dimmable) + 
-      ",\"dv\":" + String(dimmable ? _flash->getButtonDimmer(_buttonMode[buttonindex] - 1) : 0) +
+      ",\"dv\":" + String(dimmable ? _flash->getButtonDimmer(_buttonMode[buttonindex]) : 0) +
       ",\"f\":" + String(_buttonMode[buttonindex]) +
       ",\"s\":" + String(
         _buttonMode[buttonindex] < 6 ? 
@@ -357,7 +358,7 @@ void handleWebServerSetOnOff(void)
   Serial.print(_communication->webServer->arg("s").toInt());
 #endif
 
-  if (_buttonMode[buttonIndex] > 5) { // Button mode not configured as output
+  if (_buttonMode[buttonIndex] < 1 || _buttonMode[buttonIndex] > 5) { // Button mode not configured as output
 #if SERIAL_DEBUG
     Serial.println("wrong mode:");
     Serial.println(_buttonMode[buttonIndex]);

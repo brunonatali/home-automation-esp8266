@@ -423,7 +423,7 @@
      * Handle buttons at page load
      * - Buttons are disbled if gratter than 200
     */
-    var pBt=()=>{itB((b,i)=>{if(bcfg[b.id].f<200)b.checked=bcfg[b.id].s;else b.nextSibling.classList.add('swld');});};
+    var pBt=()=>{itB((b,i)=>{if(typeof bcfg[e.id] != 'undefined')if(bcfg[b.id].f<200)b.checked=bcfg[b.id].s;else b.nextSibling.classList.add('swld');)});};
 
     /**
      * 
@@ -505,7 +505,6 @@
                             if(j.r==1){msg('Configurado',1);hm();bcfg[e.target.id]=j.d;}
                             else if(typeof j.e != 'undefined'){hl();msg('err:'+j.e,0);}
                             else{hl();msg('unknown error',0);}
-                            //pBt();
                         },rC);
                     };
                 }else{ // Just turn on / off the lights
