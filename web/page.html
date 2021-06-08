@@ -396,12 +396,12 @@
      * Uncheck all buttons saving their state
      * This helps when needs to turnoff all buttons but dont want to lose their current state 
     */
-    var uB=()=>{itB((b,i)=>{bs[i+1]=b.checked;b.checked=!1;});};
+    var uB=()=>{itB((b)=>{bs[b.id]=b.checked;b.checked=!1;});};
 
     /**
      * This function retore buttons state, on or off, after uncheck all
     */
-    var cB=()=>{itB((b,i)=>{b.checked=bs[i+1];});};
+    var cB=()=>{itB((b)=>{b.checked=bs[b.id];});};
     
     /**
      * Hides modal
@@ -445,7 +445,6 @@
      * @param {callable} fe Function if server answers status gratter than 299 or timeouts
     */
     var req=(u,fo,fe)=>{
-        console.log(u);
         var xhr=new XMLHttpRequest();
         xhr.open('GET',u,1);
         xhr.setRequestHeader('Content-type','text/plain');
@@ -473,7 +472,6 @@
         itB((b)=>{
             b.addEventListener('change',(e)=>{
                 let mE=(btLn==6?e.target.id:e.target.id-1);
-                console.log(mE,bcfg[mE].f);
                 var rC=()=>{hl();mOs.zIndex=600;};
                 if(cing){ // If munu config is enabled
                     cBt=e.target.id;
@@ -507,7 +505,7 @@
                             if(j.r==1){msg('Configurado',1);hm();bcfg[e.target.id]=j.d;}
                             else if(typeof j.e != 'undefined'){hl();msg('err:'+j.e,0);}
                             else{hl();msg('unknown error',0);}
-                            pBt();
+                            //pBt();
                         },rC);
                     };
                 }else{ // Just turn on / off the lights
@@ -533,7 +531,7 @@
         if(!(cing=!cing)){
             cB();
             itB((b)=>{
-                b.nextSibling.classList.remove('swcf');
+                b.nextElementSibling.classList.remove('swcf');
             });
             M.classList.add('m');
             M.classList.remove('mp');
@@ -542,7 +540,7 @@
         }else{
             uB();
             itB((b)=>{
-                b.nextSibling.classList.add('swcf');
+                b.nextElementSibling.classList.add('swcf');
             });
             M.classList.add('mp');
             M.classList.remove('m');
