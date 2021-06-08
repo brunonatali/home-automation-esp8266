@@ -280,27 +280,27 @@
         script will remove button element with id 1
     -->
     <div class='swh swhl swht'>
-        <input type='checkbox'class='swc h'id="1">
+        <input type='checkbox'class='swc h uE'id="1">
         <label class='swl'for='1'></label>
     </div>
     <div class='swh swhl swhm'>
-        <input type='checkbox'class='swc h'id="2">
+        <input type='checkbox'class='swc h uE'id="2">
         <label class='swl'for='2'></label>
     </div>
     <div class='swh swhl swhb'>
-        <input type='checkbox'class='swc h'id="3">
+        <input type='checkbox'class='swc h uE'id="3">
         <label class='swl'for='3'></label>
     </div>
     <div class='swh swhr swht'>
-        <input type='checkbox'class='swc h'id="4">
+        <input type='checkbox'class='swc h uE'id="4">
         <label class='swl'for='4'></label>
     </div>
     <div class='swh swhr swhm'>
-        <input type='checkbox'class='swc h'id="5">
+        <input type='checkbox'class='swc h uE'id="5">
         <label class='swl'for='5'></label>
     </div>
     <div class='swh swhr swhb'>
-        <input type='checkbox'class='swc h'id="6">
+        <input type='checkbox'class='swc h uE'id="6">
         <label class='swl'for='6'></label>
     </div>
     
@@ -390,7 +390,7 @@
      * 
      * @param {callable} f 
     */
-    var itB=(f)=>{[...d.getElementsByClassName("swc")].forEach(f);};
+    var itB=(f)=>{[...d.getElementsByClassName("swc uE")].forEach(f);};
 
     /**
      * Uncheck all buttons saving their state
@@ -423,7 +423,7 @@
      * Handle buttons at page load
      * - Buttons are disbled if gratter than 200
     */
-    var pBt=()=>{itB((b,i)=>{if(bcfg[++i].f<200)b.checked=bcfg[i].s;else b.nextSibling.classList.add('swld');});};
+    var pBt=()=>{itB((b,i)=>{if(bcfg[b.id].f<200)b.checked=bcfg[b.id].s;else b.nextSibling.classList.add('swld');});};
 
     /**
      * 
@@ -480,7 +480,7 @@
                     let too,tod;
 
                     // Build output list and set configured value
-                    for(let i=1;i<=btLn;i++)too+="<option value='"+i+"' "+(bcfg[mE].f==i?'selected="selected"':'')+"'>"+i+"</option>";
+                    for(let i=1;i<=5;i++)too+="<option value='"+i+"' "+(bcfg[mE].f==i?'selected="selected"':'')+"'>"+i+"</option>";
                     // Build Dimmer list and set configured value
                     for(let n=2;n<101;n++)tod+="<option value='"+n+"' "+(bcfg[mE].dv==n?'selected="selected"':'')+">"+n+"%</option>";
 
