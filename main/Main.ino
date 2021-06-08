@@ -407,7 +407,9 @@ void handleWebServerConfig(void)
     _communication->webServer->send(400);
     return;
   }
-  
+
+  bool dimmable;
+  uint16_t dimmerValue;
   bool result = 1;
   String error;
   uint16_t buttonIndex = _communication->webServer->arg("i").toInt() -1;
@@ -419,7 +421,7 @@ void handleWebServerConfig(void)
   uint8_t outIndex = _buttonMode[buttonIndex] -1;
   
   if (outIndex < 5) {
-    bool dimmable = _communication->webServer->arg("d").toInt();
+    dimmable = _communication->webServer->arg("d").toInt();
 
     if (dimmable != _outputPinController[outIndex]->getDimmable()) {
 #if SERIAL_DEBUG
@@ -430,50 +432,63 @@ void handleWebServerConfig(void)
         Serial.print("lock,");
 #endif
         result = 0;
-        error = "dimm lock";
+        error = "dimm lock," + String(outIndex);
       } else if (!_outputPinController[outIndex]->setDimmable(dimmable)) {
 #if SERIAL_DEBUG
         Serial.print("Err,");
 #endif
         result = 0;
-        error = "dimm cfg";
+        error = "dimm cfg," + String(outIndex) + ","  + String(dimmable);
       } 
     }
   
-    if (result && dimmable) {
-      uint16_t dimmerValue = _communication->webServer->arg("dv").toInt();
+    if (result) {
+      if (dimmable) {
+        dimmerValue = _communication->webServer->arg("dv").toInt();
 
-      if (dimmerValue == 1)
-        dimmerValue = 2;
-      else if (dimmerValue > 100)
-        dimmerValue = 100;
+        if (dimmerValue == 1)
+          dimmerValue = 2;
+        else if (dimmerValue > 100)
+          dimmerValue = 100;
 
-      if (dimmable && dimmerValue &&
-        dimmerValue != _outputPinController[outIndex]->getValue()) {
+        if (dimmerValue && dimmerValue != _outputPinController[outIndex]->getValue()) {
 #if SERIAL_DEBUG
-        Serial.print("DimmVal-");
+          Serial.print("DimmVal-");
 #endif
-        if (!_outputPinController[outIndex]->dimmer(dimmerValue)) {
+          if (!_outputPinController[outIndex]->dimmer(dimmerValue)) {
 #if SERIAL_DEBUG
-          Serial.print("Err,");
-#endif
-          result = 0;
-          error = "dimm set";
-        } else {
-#if SERIAL_DEBUG
-          Serial.print("Rec,");
-#endif
-          if (!_flash->setButtonDimmer(_buttonMode[buttonIndex], dimmerValue)) {
-#if SERIAL_DEBUG
-          Serial.print("err");
+            Serial.print("Err,");
 #endif
             result = 0;
-            error = "dimm rec";
+            error = "dimm set," + String(outIndex) + ","  + String(dimmerValue);
           } else {
+#if SERIAL_DEBUG
+            Serial.print("Rec,");
+#endif
+            if (!_flash->setButtonDimmer(_buttonMode[buttonIndex], dimmerValue)) {
+#if SERIAL_DEBUG
+              Serial.print("err");
+#endif
+              result = 0;
+              error = "dimm rec," + String(buttonIndex) + "," + String(_buttonMode[buttonIndex]) + "," + String(dimmerValue);
+            } else {
+#if SERIAL_DEBUG
+              Serial.print("OK");
+#endif
+            }
+          }
+        }
+      } else {
+        if (!_flash->setButtonDimmer(_buttonMode[buttonIndex], 0)) {
+#if SERIAL_DEBUG
+        Serial.print("err");
+#endif
+          result = 0;
+          error = "dimm rec," + String(buttonIndex) + ","  + String(_buttonMode[buttonIndex]);
+        } else {
 #if SERIAL_DEBUG
           Serial.print("OK");
 #endif
-          }
         }
       }
     }
@@ -501,7 +516,7 @@ void handleWebServerConfig(void)
     _communication->webServer->send(
       200, 
       "application/json", 
-      "{\"r\":" + String(result) + (!result ? ",\"e\":" + error : NULL) + ",\"d\":" + getButtonJsonConfig(buttonIndex) + '}'
+      "{\"r\":" + String(result) + (!result ? ",\"e\":\"" + error + "\"" : "") + ",\"d\":" + getButtonJsonConfig(buttonIndex) + '}'
     );
 }
 
