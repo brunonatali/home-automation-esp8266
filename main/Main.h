@@ -42,6 +42,13 @@
 #define BUTTON_COUNT 6
 #endif
 
+/**
+ * Hardware version
+ * v0 - Buttons are mirrored
+ * v1 - Buttons corrected
+*/
+#define HW_VERSION 1
+
 
 // Stores button`s class handler
 TouchButtonModule *_touchButton[6];
@@ -68,7 +75,11 @@ MCommunication *_communication;
 #if SERIAL_DEBUG
 int _buttonPin[5] = {4, 10, 14, 12, 13};
 #else
+#if HW_VERSION == 0
 int _buttonPin[6] = {1, 4, 10, 14, 12, 13};
+#elif HW_VERSION == 1
+int _buttonPin[6] = {14, 12, 13, 1, 4, 10};
+#endif
 #endif
 
 // Stores configured mode for each button
