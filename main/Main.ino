@@ -575,8 +575,8 @@ delay(1000);
 
     _outputPinController[outPinCnt] = new Lighter(
       _outputPin[outPinCnt], 
-      LOW, 
-      HIGH, 
+      pinDimmable ? HIGH : LOW, 
+      pinDimmable ? LOW : HIGH, 
       pinDimmable, 
       !_buttonPinDimmable[outPinCnt]
     );
