@@ -33,7 +33,10 @@ class Lighter
     bool _buttonHolded = false;
     
   public:
-    Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true);
+    Lighter(int pin, bool dimmable, bool lockDimm = true);
+    ~Lighter(void);
+    void setOnLevel(bool level);
+    void setLockDimm(bool lock);
     void on(void);
     void off(void);
     bool dimmer(int value);
@@ -45,9 +48,8 @@ class Lighter
   private:
     int _pin;
     int _onLevel;
-    int _offLevel;
     int _value;
     bool _dimmable;
-    bool _lockDimm; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
+    bool _lockDimm = false; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
 };
 #endif

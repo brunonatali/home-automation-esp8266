@@ -28,7 +28,10 @@
 #include <Arduino.h>
 
 #include "GenericCallbacks.h"
+#include "Main.h"
+#include "FlashMan.h"
 #include "BounceEffect.h"
+#include "Lighter.h"
 
 extern "C"{
 #include "user_interface.h"
@@ -54,13 +57,16 @@ class TouchButtonModule
      * 
      * @param pin IO number 
      * @param buttonNumber System button number (generically a index)
-     * @param buttonDefLevel Tell if button is normally HIGH or LOW state
-     * @param buttonHoldTimeOut Time in miliseconds button must be holded to set it`s hold
-     * @param buttonHoldPeriod Time in miliseconds that button still in hold mode
+     * @param mode
      * 
      * @return TouchButtonModule
     */
-    TouchButtonModule(int pin, int buttonNumber, bool buttonDefLevel, int buttonHoldTimeOut, int buttonHoldPeriod);
+    TouchButtonModule(
+      int pin, 
+      int buttonNumber, 
+      uint8_t mode,
+      TouchButtonModule *lighterArray[]
+    );
 
     /**
      * Destructor calls disable()
@@ -71,6 +77,26 @@ class TouchButtonModule
     void setClickFunction(clickcallback *callback, void *arg);
     void setHoldFunction(unholdcallback *callback, void *arg);
     void setUnholdFunction(unholdcallback *callback, void *arg);
+
+    /**
+     * 
+     * @param buttonDefLevel Tell if button is normally HIGH or LOW state
+    */
+    void setDefaultLevel(bool level);
+    
+    /**
+     * 
+     * @param buttonHoldTimeOut Time in miliseconds button must be holded to set it`s hold
+    */
+    void setDefaultHoldTimeOut(uint8_t time);
+    
+    /**
+     * 
+     * @param buttonHoldPeriod Time in miliseconds that button still in hold mode
+    */
+    void setDefaultHoldPeriod(uint8_t time);
+
+    void removeLighter(uint8_t index);
 
     clickcallback clickCallback;
     unholdcallback holdCallback;
@@ -85,10 +111,13 @@ class TouchButtonModule
     int _lastState;
     int _buttonHoldTimeOut;
     int _holdPeriod;
+    uint8_t _mode;
     bool _defaultLevel;
     bool _enabled = false;
     os_timer_t _buttonHoldTimer;
+
     BounceEffect *bounceFx;
+    Lighter *lighter;
     
     static ICACHE_RAM_ATTR bool buttonUnholdCallback(TouchButtonModule* self, uint16_t number);
 

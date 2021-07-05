@@ -2,24 +2,17 @@
 
 TouchButtonModule::TouchButtonModule(
   int pin, 
-  int buttonNumber, 
-  bool buttonDefLevel, 
-  int buttonHoldTimeOut, 
-  int buttonHoldPeriod
+  int buttonNumber,
+  uint8_t mode,
+  TouchButtonModule *lighterArray[]
 ) {
-  _pin = pin;
-  _buttonNumber = buttonNumber;
-  _buttonHoldTimeOut = buttonHoldTimeOut * 1000;
-  _defaultLevel = buttonDefLevel;
-  _holdPeriod = buttonHoldPeriod * 1000;
+  this->_pin = pin;
+  this->_buttonNumber = buttonNumber;
+  this->_mode = mode;
 
-  // Satart bouce with 3 cycles to unbounce (unhold)
-  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); 
-
-  // bounceFx->setUnholdFunction(reinterpret_cast<unholdcallback*>(&TouchButtonModule::buttonUnholdCallback), static_cast<void*>(this));
-
-  bounceFx->unholdCallback = reinterpret_cast<unholdcallback>(TouchButtonModule::buttonUnholdCallback);
-  bounceFx->unholdCallbackArg = static_cast<void*>(this);
+  this->setDefaultHoldTimeOut(BUTTON_HOLD_TIMEOUT);
+  this->setDefaultHoldPeriod(BUTTON_HOLD_PERIOD);
+  this->setDefaultLevel(BUTTON_DEFAULT_LEVEL);
 
   // Declare default callbacks
   clickCallback = &GenericCallbacks::defaultCallbackReturnVoidArgSelf;
@@ -31,6 +24,18 @@ TouchButtonModule::TouchButtonModule(
   
   pinMode(pin, INPUT);
   os_timer_setfn(&_buttonHoldTimer, reinterpret_cast<ETSTimerFunc*>(&TouchButtonModule::buttonTimerCallback), reinterpret_cast<void*>(this));
+  
+  if (mode >= 1 && mode <= 6) {
+    delete [] lighterArray[mode];
+    uint8_t modeIndex = mode - 1;
+    bool pinDimmable = (_buttonPinDimmable[modeIndex] && _flash->getButtonDimmer(mode) != 0);
+
+    this->lighter = new Lighter(_outputPin[modeIndex], pinDimmable);
+
+    if (!_buttonPinDimmable[modeIndex])
+      this->lighter->setLockDimm();
+  }
+  
   this->enable();
 
 #if TOUCH_MODULE_DEBUG
@@ -42,6 +47,39 @@ TouchButtonModule::TouchButtonModule(
 TouchButtonModule::~TouchButtonModule(void)
 {
   this->disable();
+  delete this->bounceFx;
+  delete this->lighter;
+}
+
+void TouchButtonModule::removeLighter(uint8_t index)
+{
+  for (uint8_t i = 0 ; i < 5 ; i++)
+    if (this->_lighterArray[i] == std::nullptr) {
+
+    }
+}
+
+void TouchButtonModule::setDefaultLevel(bool level)
+{
+  delete this->bounceFx;
+  this->_defaultLevel = level;
+  
+  // Satart bouce with 3 cycles to unbounce (unhold)
+  this->bounceFx = new BounceEffect(this->_pin, INPUT, BOUNCE_EFFECT_MID, 3, this->_defaultLevel); 
+  this->bounceFx->unholdCallback = reinterpret_cast<unholdcallback>(TouchButtonModule::buttonUnholdCallback);
+  this->bounceFx->unholdCallbackArg = static_cast<void*>(this);
+}
+
+void TouchButtonModule::setDefaultHoldTimeOut(uint8_t time)
+{
+  this->_buttonHoldTimeOut = time * 1000;
+  
+}
+
+void TouchButtonModule::setDefaultHoldPeriod(uint8_t time)
+{
+  this->_holdPeriod = time * 1000;
+  
 }
 
 void TouchButtonModule::setClickFunction(clickcallback *callback, void *arg)

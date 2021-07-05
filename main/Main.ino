@@ -224,6 +224,16 @@ void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash)
           break;
         }
       }
+        
+      pinDimmable = (_buttonPinDimmable[outPinCnt] && _flash->getButtonDimmer(outPinCnt + 1) != 0);
+
+      _outputPinController[outPinCnt] = new Lighter(
+        _outputPin[outPinCnt], 
+        LOW, 
+        HIGH, 
+        pinDimmable, 
+        !_buttonPinDimmable[outPinCnt]
+      );
     }
 
     _touchButton[buttonIndex] = new TouchButtonModule(
