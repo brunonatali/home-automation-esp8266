@@ -31,6 +31,13 @@
 #define SERIAL_DEBUG 1
 #endif
 
+#if SERIAL_DEBUG
+#define SERIALPRINT Serial.print
+#else
+#define SERIALPRINT
+#endif
+
+
 /*
  *  Set the amount of buttons you must use
  *  Default value is 6
