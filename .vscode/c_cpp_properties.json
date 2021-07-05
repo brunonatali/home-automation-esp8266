@@ -11,7 +11,7 @@
                 "C:\\Users\\bruno\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
                 "C:\\Users\\bruno\\Documents\\Arduino\\libraries\\**",
                 "C:\\Program Files (x86)\\Arduino\\libraries\\**",
-                "C:\\Users\\bruno\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.7.4\\**"
+                "C:\\Users\\bruno\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\3.0.1\\**"
             ],
             "forcedInclude": [],
             "cStandard": "c17",
