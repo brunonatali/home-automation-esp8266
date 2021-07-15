@@ -27,8 +27,9 @@
 
 #include <Arduino.h>
 
+#include "Config.h"
+#include "Hardware.h"
 #include "GenericCallbacks.h"
-#include "Main.h"
 #include "FlashMan.h"
 #include "BounceEffect.h"
 #include "Lighter.h"
@@ -65,7 +66,8 @@ class TouchButtonModule
       int pin, 
       int buttonNumber, 
       uint8_t mode,
-      TouchButtonModule *lighterArray[]
+      TouchButtonModule *lighterArray[],
+      FlashMan *_flash
     );
 
     /**
@@ -118,6 +120,7 @@ class TouchButtonModule
 
     BounceEffect *bounceFx;
     Lighter *lighter;
+    TouchButtonModule *_lighterArray;
     
     static ICACHE_RAM_ATTR bool buttonUnholdCallback(TouchButtonModule* self, uint16_t number);
 

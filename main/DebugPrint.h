@@ -1,5 +1,5 @@
 /**
- * Light on / off manager
+ * Debug handler.
  * Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
  * 
  * License (MIT license):
@@ -22,35 +22,30 @@
  * THE SOFTWARE.
 */
 
-#ifndef Lighter_h
-#define Lighter_h
+#ifndef DebugPrint_h
+#define DebugPrint_h
+
+
+// Enable/disable serial debug
+#ifndef SERIAL_DEBUG
+#define SERIAL_DEBUG 1
+#endif
+
+#if SERIAL_DEBUG
 
 #include <Arduino.h>
-#include "DebugPrint.h"
+#include <iostream>
+#include <string>
+#include <vector>
 
-class Lighter
-{
-  protected:
-    bool _buttonHolded = false;
-    
-  public:
-    Lighter(int pin, bool dimmable);
-    ~Lighter(void);
-    void setOnLevel(bool level);
-    void setLockDimm(bool lock);
-    bool on(void);
-    bool off(void);
-    bool dimmer(int value);
-    bool setDimmable(bool dimm);
-    int getValue(void);
-    bool getDimmable(void);
-    bool getLockDimm(void);
-    
-  private:
-    int _pin;
-    int _onLevel;
-    int _value;
-    bool _dimmable;
-    bool _lockDimm = false; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
-};
+
+template <class T>
+void _DebugPrint( std::vector<T> list, bool newLine = true );
+
+#define SERIALPRINT _DebugPrint
+#else
+#define SERIALPRINT
+#endif
+
+
 #endif

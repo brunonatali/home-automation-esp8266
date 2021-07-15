@@ -26,7 +26,7 @@ License (MIT license):
 #include "Lighter.h"
 
 
-Lighter::Lighter(int pin, bool dimmable, bool lockDimm)
+Lighter::Lighter(int pin, bool dimmable)
 {
     this->_pin = pin;
     this->_onLevel = (dimmable ? HIGH : LOW);
@@ -35,7 +35,7 @@ Lighter::Lighter(int pin, bool dimmable, bool lockDimm)
 
     pinMode(this->_pin, OUTPUT);
 
-    off();
+    this->off();
 }
 
 Lighter::~Lighter(void)
@@ -74,21 +74,31 @@ bool Lighter::dimmer(int value)
 
     this->_value = value;
 
-    analogWrite(this->_pin, value * 10.23);
+    analogWrite(this->_pin, value * 10.23); // 1023 -> 100%
 
     return true;
 }
 
-void Lighter::on(void)
+bool Lighter::on(void)
 {
+    digitalWrite(this->_pin, this->_onLevel);
+
+    if (digitalRead(this->_pin) != this->_onLevel)
+        return false;
+        
     this->_value = this->_onLevel;
-    digitalWrite(_pin, this->_onLevel);
+    return true;
 }
 
-void Lighter::off(void)
+bool Lighter::off(void)
 {
+    digitalWrite(this->_pin, !this->_onLevel);
+
+    if (digitalRead(this->_pin) != !this->_onLevel)
+        return false;
+        
     this->_value = !this->_onLevel;
-    digitalWrite(_pin, this->_value);
+    return true;
 }
 
 int Lighter::getValue(void)

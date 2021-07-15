@@ -4,11 +4,13 @@ TouchButtonModule::TouchButtonModule(
   int pin, 
   int buttonNumber,
   uint8_t mode,
-  TouchButtonModule *lighterArray[]
+  TouchButtonModule *lighterArray[],
+  FlashMan *_flash
 ) {
   this->_pin = pin;
   this->_buttonNumber = buttonNumber;
   this->_mode = mode;
+  this->_lighterArray = lighterArray;
 
   this->setDefaultHoldTimeOut(BUTTON_HOLD_TIMEOUT);
   this->setDefaultHoldPeriod(BUTTON_HOLD_PERIOD);
@@ -33,7 +35,7 @@ TouchButtonModule::TouchButtonModule(
     this->lighter = new Lighter(_outputPin[modeIndex], pinDimmable);
 
     if (!_buttonPinDimmable[modeIndex])
-      this->lighter->setLockDimm();
+      this->lighter->setLockDimm(true);
   }
   
   this->enable();

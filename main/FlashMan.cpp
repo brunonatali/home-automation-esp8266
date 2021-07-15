@@ -362,13 +362,15 @@ uint8_t FlashMan::getButtonLightMode(uint8_t button, bool force)
 
 uint8_t FlashMan::getButtonDimmer(uint8_t button, bool force)
 {
-  if (button > 6)
+  if (button == 0 || button > 6)
     return 0;
 
+  button--;
+
   if (force) 
-    this->btnDimmer[button - 1] = FlashMan::getByte(10 + button);
+    this->btnDimmer[button] = FlashMan::getByte(10 + button);
     
-  return this->btnDimmer[button - 1];
+  return this->btnDimmer[button];
 }
 
 

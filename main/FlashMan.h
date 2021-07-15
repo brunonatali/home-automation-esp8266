@@ -32,6 +32,7 @@
 #include <WiFiClient.h>
 #include <EEPROM.h>
 
+#include "Config.h"
 #include "CRC32.h"
 #include "Converters.h"
 
@@ -72,12 +73,6 @@
 */
 #define BUTTON_HOLD_PERIOD 30 // 30 sec
 
-/*
-  Enable/disable serial debug
-*/
-#ifndef SERIAL_DEBUG
-#define SERIAL_DEBUG 0
-#endif
 
 class FlashMan
 {
