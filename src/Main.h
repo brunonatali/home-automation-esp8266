@@ -33,8 +33,10 @@
 
 #if SERIAL_DEBUG
 #define SERIALPRINT Serial.print
+#define SERIALPRINTLN Serial.println
 #else
 #define SERIALPRINT
+#define SERIALPRINTLN
 #endif
 
 
@@ -156,7 +158,7 @@ static ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonNumber);
  * @param self is not used for now - use nullptr instead
  * @param buttonNumber Button number relative to index number [0 - 5]
 */
-static ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR void buttonHolded(void* self, uint16 buttonNumber);
 
 /**
  * This function must be called when touch button is un-holded triggered by
@@ -167,7 +169,7 @@ static ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber);
  * @param self is not used for now - use nullptr instead
  * @param buttonNumber Button number relative to index number [0 - 5]
 */
-static ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber);
+static ICACHE_RAM_ATTR void buttonUnholded(void* self, uint16 buttonNumber);
 
 /**
  * Handle only the dimmer button click events

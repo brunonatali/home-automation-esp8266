@@ -81,6 +81,8 @@ bool MCommunication::setWifiIp(IPAddress *local, IPAddress *gateway, IPAddress *
     WifiIpLocal = *local;
     WifiIpGateway = *gateway;
     WifiIpSubnet = *subnet;
+
+    return true;
 }
 
 bool MCommunication::startWifi(void)
@@ -93,11 +95,13 @@ bool MCommunication::stopWifi(void)
     uint8_t time = 0;
 
     WiFi.mode(WIFI_OFF);
-    while (WiFi.getMode() != WIFI_OFF && time++ < 200) // 10 sec to disable wifi
-        delay(50);
-    if (time > 200)
-        return false;
 
+    // 10 sec to disable wifi
+    while (WiFi.getMode() != WIFI_OFF && time++ < 200) delay(50);
+
+    if (time > 200) return false;
+
+    return true;
 }
 
 bool MCommunication::restartWifi(void)
