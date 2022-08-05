@@ -10,9 +10,9 @@
             "includePath": [
                 "/home/bruno/Projetos/home-automation-esp8266/include",
                 "/home/bruno/Projetos/home-automation-esp8266/src",
+                "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/EEPROM",
                 "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WebServer/src",
                 "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
-                "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/EEPROM",
                 "/home/bruno/.platformio/packages/framework-arduinoespressif8266/tools/sdk/include",
                 "/home/bruno/.platformio/packages/framework-arduinoespressif8266/cores/esp8266",
                 "/home/bruno/.platformio/packages/toolchain-xtensa/include",
@@ -57,9 +57,9 @@
                 "path": [
                     "/home/bruno/Projetos/home-automation-esp8266/include",
                     "/home/bruno/Projetos/home-automation-esp8266/src",
+                    "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/EEPROM",
                     "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WebServer/src",
                     "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/ESP8266WiFi/src",
-                    "/home/bruno/.platformio/packages/framework-arduinoespressif8266/libraries/EEPROM",
                     "/home/bruno/.platformio/packages/framework-arduinoespressif8266/tools/sdk/include",
                     "/home/bruno/.platformio/packages/framework-arduinoespressif8266/cores/esp8266",
                     "/home/bruno/.platformio/packages/toolchain-xtensa/include",
