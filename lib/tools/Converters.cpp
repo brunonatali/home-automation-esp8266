@@ -35,7 +35,7 @@ void uInt2Char(uint8_t (&buf)[4], uint32_t value)
 
 uint32_t char2UInt(const uint8_t (&buf)[4])
 {
-    uint32_t u0 = buf[0], u1 = buf[1], u2 = buf[2], u3 = buf[3];
-    uint32_t uval = u0 | (u1 << 8) | (u2 << 16) | (u3 << 24);
-    return uval;
+  uint32_t u0 = buf[0], u1 = buf[1], u2 = buf[2], u3 = buf[3];
+  uint32_t uval = u0 | (u1 << 8) | (u2 << 16) | (u3 << 24);
+  return uval;
 }
