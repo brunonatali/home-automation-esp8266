@@ -154,20 +154,15 @@ String Flash::readString(uint8_t memAddress, uint8_t size)
 {
   char buff[size] = {0x00};
 
-  // Set final read
-  size += memAddress;
-
   SERIALPRINT("\tFlaRS[");
   SERIALPRINT(memAddress);
   SERIALPRINT("] ");
 
-  for (uint8_t i = 0; memAddress < size; memAddress++, i++)
+  for (uint8_t i = 0; i < size; memAddress++, i++)
   {
     // If /0 is found
     if (!this->_data[memAddress])
       break;
-
-    SERIALPRINT(this->_data[memAddress]);
     buff[i] = this->_data[memAddress];
   }
 
