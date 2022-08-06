@@ -27,12 +27,11 @@
 
 ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonIndex)
 {
-#if SERIAL_DEBUG  
-  Serial.print("clicked:");
-  Serial.print(buttonIndex);
-  Serial.print("-");
-  Serial.println(_buttonMode[buttonIndex]);
-#endif
+  SERIALPRINT("clicked:"); 
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT("-");
+  SERIALPRINTLN(_buttonMode[buttonIndex]);
+  
   if (_buttonMode[buttonIndex] >= 1 && _buttonMode[buttonIndex] <= 5) {
     uint8_t out = _buttonMode[buttonIndex] -1;
 
@@ -56,49 +55,52 @@ ICACHE_RAM_ATTR bool buttonClicked(void* self, uint16 buttonIndex)
   return false;
 }
 
-ICACHE_RAM_ATTR bool buttonHolded(void* self, uint16 buttonNumber)
+IRAM_ATTR void buttonHolded(void* self, uint16 buttonNumber)
 {
-#if SERIAL_DEBUG
-  Serial.print("holded:");
-  Serial.println(buttonNumber);
-#endif
+  SERIALPRINT("holded:");
+  SERIALPRINTLN(buttonNumber);
+  
   // Enable dimmer button
   uint8_t tempBtnMode = _buttonMode[buttonNumber] -1;
   dimmerHoldButton = (tempBtnMode < 6 ? tempBtnMode : 0xFF);
-#if SERIAL_DEBUG
-  Serial.print("dimmable:");
-  Serial.print(dimmerHoldButton);
-  Serial.print("-");
-  Serial.println(_outputPinController[dimmerHoldButton]->getDimmable());
-#endif
-  if (dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable())
-    enableDimmerButton(); // Just enable dimmer if holded button is dimmable
+  bool isButtonDimmable = 
+    dimmerHoldButton != 0xFF ? 
+    _outputPinController[dimmerHoldButton]->getDimmable() : 
+    false;
 
-  // Disable all other buttons
-  for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
-    if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
-#if SERIAL_DEBUG
-      Serial.print("disable:");
-      Serial.print(btnCnt);
-      Serial.print("-");
-      Serial.println(_buttonMode[btnCnt]);
-#endif      
-      _touchButton[btnCnt]->disable();
-      _buttonMode[btnCnt] = 0xFE; // Disabled by software -> re-enable after interaction
+  SERIALPRINT("dimmable:");
+  SERIALPRINT(dimmerHoldButton);
+  SERIALPRINT("-");
+  SERIALPRINTLN(isButtonDimmable);
+
+  if (isButtonDimmable) {
+    (void) enableDimmerButton(); // Just enable dimmer if holded button is dimmable
+
+    // Disable all other buttons
+    for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
+      if (btnCnt != buttonNumber && _buttonMode[btnCnt] < 6) { // Only disable light handle buttons
+        SERIALPRINT("disable:");
+        SERIALPRINT(btnCnt);
+        SERIALPRINT("-");
+        SERIALPRINTLN(_buttonMode[btnCnt]);
+
+        _touchButton[btnCnt]->disable();
+        _buttonMode[btnCnt] = BUTTON_DISABLED_BY_SOFTWARE;
+      }
     }
+  } else {
+    dimmerHoldButton = 0xFF;
   }
 }
 
-ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
+IRAM_ATTR void buttonUnholded(void* self, uint16 buttonNumber)
 {
-#if SERIAL_DEBUG  
-  Serial.print("un-holded");
-  Serial.println(buttonNumber);
-#endif
+  SERIALPRINT("un-holded");
+  SERIALPRINTLN(buttonNumber);
 
-  // Re-enable disabled buttons on holded
+  // Re-enable disabled buttons when hold
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
-    if (btnCnt != buttonNumber && _buttonMode[btnCnt] == 0xFE) { // Only enable previously disabled buttons
+    if (btnCnt != buttonNumber && _buttonMode[btnCnt] == BUTTON_DISABLED_BY_SOFTWARE) {
       _touchButton[btnCnt]->enable();
       _buttonMode[btnCnt] = _flash->getButtonLightMode(btnCnt + 1);
     }
@@ -115,10 +117,10 @@ ICACHE_RAM_ATTR bool buttonUnholded(void* self, uint16 buttonNumber)
   }
 }
 
-ICACHE_RAM_ATTR void dimmerButtonClicked(void)
+IRAM_ATTR void dimmerButtonClicked(void)
 {
 #if SERIAL_DEBUG  
-  Serial.print("dimmerButtonClicked:");
+  SERIALPRINT("dimmerButtonClicked:");
 #endif
   if (dimmerEnabled && dimmerHoldButton != 0xFF && _outputPinController[dimmerHoldButton]->getDimmable()) {
     uint16_t value = _outputPinController[dimmerHoldButton]->getValue();
@@ -138,11 +140,11 @@ ICACHE_RAM_ATTR void dimmerButtonClicked(void)
 
     _outputPinController[dimmerHoldButton]->dimmer(value);
 #if SERIAL_DEBUG
-    Serial.println(value);
+    SERIALPRINTLN(value);
 #endif
   } else {
 #if SERIAL_DEBUG
-  Serial.println("OK");
+  SERIALPRINTLN("OK");
 #endif
   }
 }
@@ -150,7 +152,7 @@ ICACHE_RAM_ATTR void dimmerButtonClicked(void)
 void enableDimmerButton(void)
 {
 #if SERIAL_DEBUG
-  Serial.print("enableDimmerButton:");
+  SERIALPRINT("enableDimmerButton:");
 #endif
   if (dimmerButtonIndex == 0xFF)
     return;
@@ -159,14 +161,14 @@ void enableDimmerButton(void)
   attachInterrupt(digitalPinToInterrupt(_buttonPin[dimmerButtonIndex]), &dimmerButtonClicked, RISING);
   dimmerEnabled = true;
 #if SERIAL_DEBUG
-  Serial.println("OK");
+  SERIALPRINTLN("OK");
 #endif
 }
 
 void disableDimmerButton(void)
 {
 #if SERIAL_DEBUG
-  Serial.print("disableDimmerButton");
+  SERIALPRINT("disableDimmerButton");
 #endif
   if (dimmerButtonIndex == 0xFF)
     return;
@@ -176,21 +178,21 @@ void disableDimmerButton(void)
   digitalWrite(_buttonPin[dimmerButtonIndex], LOW);
   detachInterrupt(_buttonPin[dimmerButtonIndex]);
 #if SERIAL_DEBUG
-  Serial.println("OK");
+  SERIALPRINTLN("OK");
 #endif
 }
 
 void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash)
 {
 #if SERIAL_DEBUG
-  Serial.print("Cfg Btn:");
+  SERIALPRINT("Cfg Btn:");
 #endif
 
   if (_buttonMode[buttonIndex] != 0xFA) {
     if (_buttonMode[buttonIndex] == mode) {
 #if SERIAL_DEBUG
-    Serial.print("mode is D same,");
-    Serial.print(mode);
+    SERIALPRINT("mode is D same,");
+    SERIALPRINT(mode);
 #endif
       return;
     }
@@ -200,7 +202,7 @@ void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash)
 
   if (mode == 0xC8) { // dimmer
 #if SERIAL_DEBUG
-    Serial.print("dimmer");
+    SERIALPRINT("dimmer");
 #endif
     disableDimmerButton(); // Disable previous configured dimmer button
 
@@ -209,8 +211,8 @@ void configureButton(uint8_t buttonIndex, uint8_t mode, bool setFlash)
     disableDimmerButton();
   } else {
 #if SERIAL_DEBUG
-    Serial.print("md->");
-    Serial.print(mode);
+    SERIALPRINT("md->");
+    SERIALPRINT(mode);
 #endif
     if (_buttonMode[buttonIndex] == 0xC8) { // If this button was previously configured as dimmer
       disableDimmerButton();
@@ -287,14 +289,14 @@ String getButtonsJsonList(void)
     btn = btnCnt +1;
 
 #if SERIAL_DEBUG
-    Serial.print('a');
-    Serial.print(btnCnt);
-    Serial.print('-');
-    Serial.print(_buttonMode[btnCnt]);
-    Serial.print('-');
-    Serial.print(btn);
-    Serial.print('-');
-    Serial.println(_buttonMode[btnCnt]);
+    SERIALPRINT('a');
+    SERIALPRINT(btnCnt);
+    SERIALPRINT('-');
+    SERIALPRINT(_buttonMode[btnCnt]);
+    SERIALPRINT('-');
+    SERIALPRINT(btn);
+    SERIALPRINT('-');
+    SERIALPRINTLN(_buttonMode[btnCnt]);
 #endif
 
     if (json.length())
@@ -310,7 +312,7 @@ String getButtonsJsonList(void)
 void handleWebServerRoot(void)
 {
 #if SERIAL_DEBUG
-  Serial.println("req: root page");
+  SERIALPRINTLN("req: root page");
 #endif
   _communication->webServer->send(200, "text/html", _communication->localWebPage + getButtonsJsonList() + "};</script>");
 }
@@ -318,18 +320,18 @@ void handleWebServerRoot(void)
 void handleWebServerSetOnOff(void)
 {
 #if SERIAL_DEBUG
-  Serial.print("req: set on-off,");
+  SERIALPRINT("req: set on-off,");
 #endif
   if (_communication->webServer->arg("i") == "") { // No button number provided
 #if SERIAL_DEBUG
-    Serial.println("not i");
+    SERIALPRINTLN("not i");
 #endif
     _communication->webServer->send(400);
     return;
   }
   if (_communication->webServer->arg("s") == "") { // No set configured
 #if SERIAL_DEBUG
-    Serial.println("not s");
+    SERIALPRINTLN("not s");
 #endif
     _communication->webServer->send(400);
     return;
@@ -339,29 +341,29 @@ void handleWebServerSetOnOff(void)
 
   if (buttonIndex > 5) { // Button index is wrong
 #if SERIAL_DEBUG
-    Serial.println("wrong i:");
-    Serial.println(buttonIndex);
+    SERIALPRINTLN("wrong i:");
+    SERIALPRINTLN(buttonIndex);
 #endif
     _communication->webServer->send(400);
     return;
   }
 
 #if SERIAL_DEBUG
-  Serial.print("s(");
-  Serial.print(buttonIndex);
-  Serial.print(")");
+  SERIALPRINT("s(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT(")");
   uint8_t out = _buttonMode[buttonIndex] -1;
   if (out < 5) {
-    Serial.print(_outputPinController[out]->getValue());
-    Serial.print("-");
+    SERIALPRINT(_outputPinController[out]->getValue());
+    SERIALPRINT("-");
   }
-  Serial.print(_communication->webServer->arg("s").toInt());
+  SERIALPRINT(_communication->webServer->arg("s").toInt());
 #endif
 
   if (_buttonMode[buttonIndex] < 1 || _buttonMode[buttonIndex] > 5) { // Button mode not configured as output
 #if SERIAL_DEBUG
-    Serial.println("wrong mode:");
-    Serial.println(_buttonMode[buttonIndex]);
+    SERIALPRINTLN("wrong mode:");
+    SERIALPRINTLN(_buttonMode[buttonIndex]);
 #endif
     _communication->webServer->send(405);
     return;
@@ -372,9 +374,9 @@ void handleWebServerSetOnOff(void)
 
 #if SERIAL_DEBUG
   if (clickResult) {
-    Serial.println(":OK");
+    SERIALPRINTLN(":OK");
   } else {
-    Serial.println(":Er");
+    SERIALPRINTLN(":Er");
   }
 #endif
 
@@ -388,11 +390,11 @@ void handleWebServerSetOnOff(void)
 void handleWebServerConfig(void)
 {
 #if SERIAL_DEBUG
-  Serial.print("req: config,");
+  SERIALPRINT("req: config,");
 #endif
   if (_communication->webServer->arg("i") == "") { // No button number provided
 #if SERIAL_DEBUG
-    Serial.println("not i");
+    SERIALPRINTLN("not i");
 #endif
     _communication->webServer->send(400);
     return;
@@ -401,7 +403,7 @@ void handleWebServerConfig(void)
     _communication->webServer->arg("d") == "" || 
     _communication->webServer->arg("dv") == "") { // No config provided
 #if SERIAL_DEBUG
-    Serial.println("not cfg");
+    SERIALPRINTLN("not cfg");
 #endif
     _communication->webServer->send(400);
     return;
@@ -424,17 +426,17 @@ void handleWebServerConfig(void)
 
     if (dimmable != _outputPinController[outIndex]->getDimmable()) {
 #if SERIAL_DEBUG
-      Serial.print("setDimm-");
+      SERIALPRINT("setDimm-");
 #endif
       if (_outputPinController[outIndex]->getLockDimm()) {
 #if SERIAL_DEBUG
-        Serial.print("lock,");
+        SERIALPRINT("lock,");
 #endif
         result = 0;
         error = "dimm lock," + String(outIndex);
       } else if (!_outputPinController[outIndex]->setDimmable(dimmable)) {
 #if SERIAL_DEBUG
-        Serial.print("Err,");
+        SERIALPRINT("Err,");
 #endif
         result = 0;
         error = "dimm cfg," + String(outIndex) + ","  + String(dimmable);
@@ -452,27 +454,27 @@ void handleWebServerConfig(void)
 
         if (dimmerValue && dimmerValue != _outputPinController[outIndex]->getValue()) {
 #if SERIAL_DEBUG
-          Serial.print("DimmVal-");
+          SERIALPRINT("DimmVal-");
 #endif
           if (!_outputPinController[outIndex]->dimmer(dimmerValue)) {
 #if SERIAL_DEBUG
-            Serial.print("Err,");
+            SERIALPRINT("Err,");
 #endif
             result = 0;
             error = "dimm set," + String(outIndex) + ","  + String(dimmerValue);
           } else {
 #if SERIAL_DEBUG
-            Serial.print("Rec,");
+            SERIALPRINT("Rec,");
 #endif
             if (!_flash->setButtonDimmer(_buttonMode[buttonIndex], dimmerValue)) {
 #if SERIAL_DEBUG
-              Serial.print("err");
+              SERIALPRINT("err");
 #endif
               result = 0;
               error = "dimm rec," + String(buttonIndex) + "," + String(_buttonMode[buttonIndex]) + "," + String(dimmerValue);
             } else {
 #if SERIAL_DEBUG
-              Serial.print("OK");
+              SERIALPRINT("OK");
 #endif
             }
           }
@@ -480,13 +482,13 @@ void handleWebServerConfig(void)
       } else {
         if (!_flash->setButtonDimmer(_buttonMode[buttonIndex], 0)) {
 #if SERIAL_DEBUG
-        Serial.print("err");
+        SERIALPRINT("err");
 #endif
           result = 0;
           error = "dimm rec," + String(buttonIndex) + ","  + String(_buttonMode[buttonIndex]);
         } else {
 #if SERIAL_DEBUG
-          Serial.print("OK");
+          SERIALPRINT("OK");
 #endif
         }
       }
@@ -494,18 +496,18 @@ void handleWebServerConfig(void)
   }
     
 #if SERIAL_DEBUG
-  Serial.print("c(");
-  Serial.print(buttonIndex);
-  Serial.print(")f-");
-  Serial.print(_buttonMode[buttonIndex]);
-  Serial.print("->");
-  Serial.print(btnMode);
+  SERIALPRINT("c(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT(")f-");
+  SERIALPRINT(_buttonMode[buttonIndex]);
+  SERIALPRINT("->");
+  SERIALPRINT(btnMode);
   if (outIndex < 5) {
-    Serial.print("d-");
-    Serial.print(dimmable);
+    SERIALPRINT("d-");
+    SERIALPRINT(dimmable);
     if (result && dimmable) {
-      Serial.print("dv-");
-      Serial.print(dimmerValue);
+      SERIALPRINT("dv-");
+      SERIALPRINT(dimmerValue);
     }
   }
 #endif
@@ -524,17 +526,17 @@ void setup()
   // SYSTEM INFO
 #if SERIAL_DEBUG
   Serial.begin(115200); 
-  Serial.println("");
-  Serial.println("System setup...");
-  Serial.print("SDK version: ");
-  Serial.println(system_get_sdk_version());
-  Serial.print("ChipID: ");
-  Serial.println(system_get_chip_id()); 
-  // Serial.print("MEM: ");
+  SERIALPRINTLN("");
+  SERIALPRINTLN("System setup...");
+  SERIALPRINT("SDK version: ");
+  SERIALPRINTLN(system_get_sdk_version());
+  SERIALPRINT("ChipID: ");
+  SERIALPRINTLN(system_get_chip_id()); 
+  // SERIALPRINT("MEM: ");
   // system_set_os_print(1);
   // system_print_meminfo();
-  Serial.print("Power: ");
-  Serial.println(system_get_vdd33());
+  SERIALPRINT("Power: ");
+  SERIALPRINTLN(system_get_vdd33());
 #endif
 
   /**
@@ -543,8 +545,8 @@ void setup()
   _flash = new FlashMan();
 
 #if SERIAL_DEBUG
-  Serial.print("btn led PWM:");
-  Serial.println(analogRead(2));
+  SERIALPRINT("btn led PWM:");
+  SERIALPRINTLN(analogRead(2));
 #endif
 delay(500);
   
@@ -557,7 +559,7 @@ delay(500);
  * INITIALIZE OUTPUT PINS (LIGHT)
 */
 #if SERIAL_DEBUG
-  Serial.print("\nInitializing OUTPUTS: ");
+  SERIALPRINT("\nInitializing OUTPUTS: ");
 #endif
 delay(1000);
 
@@ -565,10 +567,10 @@ delay(1000);
   for (int outPinCnt = 0 ; outPinCnt < 5 ; outPinCnt++) {
 #if SERIAL_DEBUG
     if (outPinCnt)
-      Serial.print(", ");
-    Serial.print(outPinCnt);
-    Serial.print("->");
-    Serial.print(_outputPin[outPinCnt]);
+      SERIALPRINT(", ");
+    SERIALPRINT(outPinCnt);
+    SERIALPRINT("->");
+    SERIALPRINT(_outputPin[outPinCnt]);
 #endif
 
     pinDimmable = (_buttonPinDimmable[outPinCnt] && _flash->getButtonDimmer(outPinCnt + 1) != 0);
@@ -588,12 +590,12 @@ delay(1000);
   INITIALIZE BUTTONS
 */
 #if SERIAL_DEBUG
-  Serial.print("\nInitializing buttons: ");
+  SERIALPRINT("\nInitializing buttons: ");
   if (BUTTON_COUNT) {
-    Serial.print(BUTTON_COUNT);
-    Serial.println(": ");
+    SERIALPRINT(BUTTON_COUNT);
+    SERIALPRINTLN(": ");
   } else {
-    Serial.println("None");
+    SERIALPRINTLN("None");
   }
 #endif
 delay(1000);
@@ -601,28 +603,28 @@ delay(1000);
   for (int btnCnt = 0 ; btnCnt < BUTTON_COUNT ; btnCnt++) {
     uint8_t tmpBtnMode = _flash->getButtonLightMode(btnCnt + 1);
 #if SERIAL_DEBUG
-    Serial.print(btnCnt);
-    Serial.print("->");
-    Serial.print(_buttonPin[btnCnt]);
-    Serial.print("-");
-    Serial.println(tmpBtnMode);
+    SERIALPRINT(btnCnt);
+    SERIALPRINT("->");
+    SERIALPRINT(_buttonPin[btnCnt]);
+    SERIALPRINT("-");
+    SERIALPRINTLN(tmpBtnMode);
 #endif
 
     configureButton(btnCnt, tmpBtnMode, false);
     delay(500);
   }
 #if SERIAL_DEBUG
-    Serial.println("");
+    SERIALPRINTLN("");
 #endif
 
   _communication = new MCommunication(_flash->getSsid(), _flash->getWifiPass());
 
 delay(1000);
 #if SERIAL_DEBUG
-  Serial.print("Wifi mde:");
-  Serial.print(_flash->getWifiMode());
-  Serial.print("-");
-  Serial.println(WIFI_OPERATION_MODE_AP);
+  SERIALPRINT("Wifi mde:");
+  SERIALPRINT(_flash->getWifiMode());
+  SERIALPRINT("-");
+  SERIALPRINTLN(WIFI_OPERATION_MODE_AP);
 #endif
 delay(1000);
 
@@ -651,8 +653,8 @@ void reboot(bool critical)
 {
 #if SERIAL_DEBUG 
   if (critical)
-    Serial.print("[CRITICAL] ");
-  Serial.println("System reboot requested");
+    SERIALPRINT("[CRITICAL] ");
+  SERIALPRINTLN("System reboot requested");
 #endif
   ESP.restart(); 
 }

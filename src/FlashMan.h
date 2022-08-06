@@ -72,6 +72,8 @@
 */
 #define BUTTON_HOLD_PERIOD 30 // 30 sec
 
+#define BUTTON_DISABLED_BY_SOFTWARE 0xFE
+
 /*
   Enable/disable serial debug
 */
