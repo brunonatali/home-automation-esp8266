@@ -23,15 +23,13 @@ License (MIT license):
 
 */
 
-#include "ProjectConfig.h"
-
 #include "Flash.h"
 
 /**
  * @brief This class will extends original EEPROM class, bypassing some
  * verifications and increasing performance on buffer copying
  */
-Flash::Flash()
+Flash::Flash() : EEPROMClass()
 {
   this->begin(EEPROM_FLASH_SIZE);
 }
@@ -258,4 +256,18 @@ void Flash::erase()
   this->_dirty = true;
 
   (void)this->commit();
+}
+
+/**
+ * @brief use this to get Flash instance, ensuring that just only
+ * one Flash instance will be used
+ *
+ * @return Flash*
+ */
+Flash *Flash::getFlashMemoryInstance()
+{
+  if (FlashMemoryInstance == nullptr)
+    FlashMemoryInstance = new Flash();
+
+  return FlashMemoryInstance;
 }

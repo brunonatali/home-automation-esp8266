@@ -24,6 +24,8 @@
 #ifndef ByteManipulation_h
 #define ByteManipulation_h
 
+#include "CustomTypes.h"
+
 #include <Arduino.h>
 #include <string.h>
 
@@ -35,9 +37,9 @@ private:
 public:
   ByteManipulation(uint8_t *byte);
 
-  void setBit(uint8_t bitIndex, bool bitValue);
+  void setBit(uint8_t bitIndex, bit_t bitValue);
 
-  bool getBit(uint8_t bitIndex);
+  bit_t getBit(uint8_t bitIndex);
 
   void setFirstNibble(uint8_t value);
 
@@ -47,9 +49,9 @@ public:
 
   uint8_t getSecondNibble();
 
-  static void setBitOnByte(uint8_t *byte, uint8_t bitIndex, bool bitValue);
+  static void setBitOnByte(uint8_t *byte, uint8_t bitIndex, bit_t bitValue);
 
-  static bool getBitOnByte(uint8_t byte, uint8_t bitIndex);
+  static bit_t getBitOnByte(uint8_t byte, uint8_t bitIndex);
 
   static void setFirstNibbleOnByte(uint8_t *byte, uint8_t value);
 

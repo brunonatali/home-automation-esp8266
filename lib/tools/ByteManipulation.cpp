@@ -35,7 +35,7 @@ ByteManipulation::ByteManipulation(uint8_t *byte)
  * @param bitIndex
  * @param bitValue
  */
-void ByteManipulation::setBit(uint8_t bitIndex, bool bitValue)
+void ByteManipulation::setBit(uint8_t bitIndex, bit_t bitValue)
 {
   (void)ByteManipulation::setBitOnByte(this->_byte, bitIndex, bitValue);
 }
@@ -47,7 +47,7 @@ void ByteManipulation::setBit(uint8_t bitIndex, bool bitValue)
  * @return true
  * @return false
  */
-bool ByteManipulation::getBit(uint8_t bitIndex)
+bit_t ByteManipulation::getBit(uint8_t bitIndex)
 {
   return ByteManipulation::getBitOnByte(*this->_byte, bitIndex);
 }
@@ -100,7 +100,7 @@ uint8_t ByteManipulation::getSecondNibble()
  * @param bitValue 0 or 1
  * @return uint8_t Modified Byte
  */
-void ByteManipulation::setBitOnByte(uint8_t *byte, uint8_t bitIndex, bool bitValue)
+void ByteManipulation::setBitOnByte(uint8_t *byte, uint8_t bitIndex, bit_t bitValue)
 {
   *byte = bitValue ? bitSet(*byte, bitIndex) : bitClear(*byte, bitIndex);
 }
@@ -113,7 +113,7 @@ void ByteManipulation::setBitOnByte(uint8_t *byte, uint8_t bitIndex, bool bitVal
  * @return true
  * @return false
  */
-bool ByteManipulation::getBitOnByte(uint8_t byte, uint8_t bitIndex)
+bit_t ByteManipulation::getBitOnByte(uint8_t byte, uint8_t bitIndex)
 {
   return ((byte) >> (bitIndex)) & 0x01;
 }
