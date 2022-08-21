@@ -26,6 +26,7 @@
 #define DefaultFlashValues_h
 
 #include "NibleStep.h"
+#include "FlashValues.h"
 
 /**
  * This file defines standard values for each flash position
@@ -36,14 +37,14 @@
  *
  * @note Possible values are 0 / 1
  */
-#define FLASH_DEFAULT_WIFI_MODE 0
+#define FLASH_DEFAULT_WIFI_MODE wifi_mode::ACCESS_POINT
 
 /**
  * @brief Define Button untouched logic level state
  *
  * @note Possible values are 0 / 1 [LOW / HIGH]
  */
-#define FLASH_DEFAULT_BUTTON_LOGIC_LEVEL 1
+#define FLASH_DEFAULT_BUTTON_LOGIC_LEVEL button_logic_level::_HIGH
 
 /**
  * @brief Time (seconds) to set that button is holded
@@ -63,31 +64,31 @@
  * @brief Light mode for button 1.
  *
  */
-#define FLASH_DEFAULT_BUTTON_MODE_1 LIGHT_MODE_STEP_OUTPUT_1
+#define FLASH_DEFAULT_BUTTON_1_MODE LIGHT_MODE_STEP_OUTPUT_1
 
 /**
  * @brief Light mode for button 2.
  *
  */
-#define FLASH_DEFAULT_BUTTON_MODE_2 LIGHT_MODE_STEP_OUTPUT_2
+#define FLASH_DEFAULT_BUTTON_2_MODE LIGHT_MODE_STEP_OUTPUT_2
 
 /**
  * @brief Light mode for button 3.
  *
  */
-#define FLASH_DEFAULT_BUTTON_MODE_3 LIGHT_MODE_STEP_OUTPUT_3
+#define FLASH_DEFAULT_BUTTON_3_MODE LIGHT_MODE_STEP_OUTPUT_3
 
 /**
  * @brief Light mode for button 4.
  *
  */
-#define FLASH_DEFAULT_BUTTON_MODE_4 LIGHT_MODE_STEP_OUTPUT_4
+#define FLASH_DEFAULT_BUTTON_4_MODE LIGHT_MODE_STEP_OUTPUT_4
 
 /**
  * @brief Light mode for button 5.
  *
  */
-#define FLASH_DEFAULT_BUTTON_MODE_5 LIGHT_MODE_STEP_OUTPUT_5
+#define FLASH_DEFAULT_BUTTON_5_MODE LIGHT_MODE_STEP_OUTPUT_5
 
 /**
  * @brief Light mode for button 6.
@@ -95,7 +96,12 @@
  * @note We have just 5 outputs, because of it, last button is disabled
  * by default
  */
-#define FLASH_DEFAULT_BUTTON_MODE_6 LIGHT_MODE_STEP_DISABLED
+#define FLASH_DEFAULT_BUTTON_6_MODE LIGHT_MODE_STEP_DISABLED
+
+/**
+ * @brief Set bright for touch buttons LED
+ */
+#define FLASH_DEFAULT_BUTTONS_DIMMER PERCENTAGE_100
 
 /**
  * @brief Dimmer percentage for all outputs.
@@ -153,7 +159,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_1 "Botao 1"
+#define FLASH_DEFAULT_BUTTON_1_ALIAS "Botao 1"
 
 /**
  * @brief Name / alias for button 2.
@@ -161,7 +167,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_2 "Botao 2"
+#define FLASH_DEFAULT_BUTTON_2_ALIAS "Botao 2"
 
 /**
  * @brief Name / alias for button 3.
@@ -169,7 +175,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_3 "Botao 3"
+#define FLASH_DEFAULT_BUTTON_3_ALIAS "Botao 3"
 
 /**
  * @brief Name / alias for button 4.
@@ -177,7 +183,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_4 "Botao 4"
+#define FLASH_DEFAULT_BUTTON_4_ALIAS "Botao 4"
 
 /**
  * @brief Name / alias for button 5.
@@ -185,7 +191,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_5 "Botao 5"
+#define FLASH_DEFAULT_BUTTON_5_ALIAS "Botao 5"
 
 /**
  * @brief Name / alias for button 6.
@@ -193,7 +199,7 @@
  * @note Alias will make easier to recognise for which light (lamp)
  * this button is associated for.
  */
-#define FLASH_DEFAULT_BUTTON_ALIAS_6 "Botao 6"
+#define FLASH_DEFAULT_BUTTON_6_ALIAS "Botao 6"
 
 /**
  * @brief Name / alias room.

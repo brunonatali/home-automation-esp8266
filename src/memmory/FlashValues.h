@@ -231,6 +231,12 @@ public:
 
   flash_value_result setDefaultConfigFlashBit(bit_t config);
 
+  /**
+   * COMMON
+   */
+
+  bool restoreDefaults();
+
 private:
   Flash *FlashMemmory;
 };

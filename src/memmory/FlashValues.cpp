@@ -1226,3 +1226,231 @@ flash_value_result FlashValues::setDefaultConfigFlashBit(bit_t config)
              ? flash_value_result::OK
              : flash_value_result::ERROR;
 }
+
+/**
+ * @brief Restores all flash values to their defaults
+ *
+ * @return true
+ * @return false
+ */
+bool FlashValues::restoreDefaults()
+{
+  SERIALPRINT("FlaVal->restoreDefaults()");
+
+  bool flashWriteResult = false;
+
+  this->FlashMemmory->pauseWrite();
+
+  /**
+   * Set all values by calling their setters
+   */
+  (void)this->setWifiMode(FLASH_DEFAULT_WIFI_MODE);
+
+  (void)this->setButtonLogicLevel(FLASH_DEFAULT_BUTTON_LOGIC_LEVEL);
+
+  (void)this->setButtonHoldTimeout((seconds_step)FLASH_DEFAULT_BUTTON_HOLD_TIME_OUT);
+
+  (void)this->setButtonHoldPeriod((seconds_step)FLASH_DEFAULT_BUTTON_HOLD_PERIOD);
+
+  (void)this->setButtonsDimmer((light_dimmer)FLASH_DEFAULT_BUTTONS_DIMMER);
+
+  (void)this->setConnectionIp(
+      FLASH_DEFAULT_IP_OCTET_1,
+      FLASH_DEFAULT_IP_OCTET_2,
+      FLASH_DEFAULT_IP_OCTET_3,
+      FLASH_DEFAULT_IP_OCTET_4);
+
+  (void)this->setConnectionPort(FLASH_DEFAULT_MANAGER_PORT);
+
+  (void)this->setWifiSSID(FLASH_DEFAULT_WIFI_PRE_SSID + WiFi.macAddress());
+
+  (void)this->setWifiPassword(FLASH_DEFAULT_WIFI_PASSWORD);
+
+  (void)this->setRoomAlias(FLASH_DEFAULT_KEYPAD_ALIAS);
+
+  (void)this->setMyAddress(FLASH_DEFAULT_DEVICE_ADDRESS);
+
+  (void)this->setSystemLockTimeout((seconds_step)FLASH_DEFAULT_LOCK_TIME_OUT);
+
+  (void)this->setSytemLockPeriod((seconds_step)FLASH_DEFAULT_AUTO_LOCK_PERIOD);
+
+  (void)this->setSystemAutoLock(system_auto_lock::ENABLED);
+
+  /**
+   * Set outputs default values
+   *
+   * @note values are the same (0%) since we do not want to damage a hardware
+   * that's incompatible with PWM
+   */
+  for (uint8_t i = 0; i < OUTPUTS_COUNT; i++)
+  {
+    if (i == 0)
+    {
+      (void)this->setOutputDimmer(
+          output_index::OUTPUT_1,
+          (light_dimmer)FLASH_DEFAULT_OUTPUT);
+    }
+    else if (i == 1)
+    {
+      (void)this->setOutputDimmer(
+          output_index::OUTPUT_2,
+          (light_dimmer)FLASH_DEFAULT_OUTPUT);
+    }
+    else if (i == 2)
+    {
+      (void)this->setOutputDimmer(
+          output_index::OUTPUT_3,
+          (light_dimmer)FLASH_DEFAULT_OUTPUT);
+    }
+    else if (i == 3)
+    {
+      (void)this->setOutputDimmer(
+          output_index::OUTPUT_4,
+          (light_dimmer)FLASH_DEFAULT_OUTPUT);
+    }
+    else if (i == 4)
+    {
+      (void)this->setOutputDimmer(
+          output_index::OUTPUT_5,
+          (light_dimmer)FLASH_DEFAULT_OUTPUT);
+    }
+  }
+
+  ;
+
+  /**
+   * Set buttons default values
+   */
+  for (uint8_t i = 0; i < BUTTONS_COUNT; i++)
+  {
+    if (i == 0)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_1,
+          (button_mode)FLASH_DEFAULT_BUTTON_1_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_1,
+          FLASH_DEFAULT_BUTTON_1_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_1,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_1,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_1));
+    }
+    else if (i == 1)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_2,
+          (button_mode)FLASH_DEFAULT_BUTTON_2_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_2,
+          FLASH_DEFAULT_BUTTON_2_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_2,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_2,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_2));
+    }
+    else if (i == 2)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_3,
+          (button_mode)FLASH_DEFAULT_BUTTON_3_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_3,
+          FLASH_DEFAULT_BUTTON_3_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_3,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_3,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_3));
+    }
+    else if (i == 3)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_4,
+          (button_mode)FLASH_DEFAULT_BUTTON_4_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_4,
+          FLASH_DEFAULT_BUTTON_4_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_4,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_4,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_4));
+    }
+    else if (i == 4)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_5,
+          (button_mode)FLASH_DEFAULT_BUTTON_5_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_5,
+          FLASH_DEFAULT_BUTTON_5_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_5,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_5,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_5));
+    }
+    else if (i == 5)
+    {
+      (void)this->setButtonMode(
+          button_index::BUTTON_6,
+          (button_mode)FLASH_DEFAULT_BUTTON_6_MODE);
+
+      (void)this->setButtonAlias(
+          button_index::BUTTON_6,
+          FLASH_DEFAULT_BUTTON_6_ALIAS);
+
+      (void)this->setButtonRemoteAddress(
+          button_index::BUTTON_6,
+          FLASH_DEFAULT_REMOTE_ADDRESS);
+
+      (void)this->setButtonHandleHold(
+          button_index::BUTTON_6,
+          ByteManipulation::getBitOnByte(
+              FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+              EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_6));
+    }
+  }
+
+  flashWriteResult = this->FlashMemmory->resumeWrite();
+
+  if (flashWriteResult)
+    SERIALPRINTLN(" - OK");
+  else
+    SERIALPRINTLN(" - ERROR");
+
+  return flashWriteResult ? flash_value_result::OK : flash_value_result::ERROR;
+}
