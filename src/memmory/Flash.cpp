@@ -32,6 +32,10 @@ License (MIT license):
 Flash::Flash() : EEPROMClass()
 {
   this->begin(EEPROM_FLASH_SIZE);
+
+  // Initialize pause write controllers
+  this->isWriteInPause = false;
+  this->setCrcOnWriteResume = false;
 }
 
 /**
@@ -46,13 +50,14 @@ Flash::Flash() : EEPROMClass()
  * @return true
  * @return false
  */
-bool Flash::writeString(uint8_t memAddress, String str, bool setCrc)
+bool Flash::writeString(uint8_t memAddress, String str, uint8_t size = 0, bool setCrc)
 {
   if (memAddress >= EEPROM_FLASH_SIZE)
     return false;
 
   uint8_t i;
-  int size = str.length();
+  if (!size)
+    size = str.length();
 
   SERIALPRINT("\tFlaWS[");
   SERIALPRINT(memAddress);
@@ -62,6 +67,13 @@ bool Flash::writeString(uint8_t memAddress, String str, bool setCrc)
   str.toCharArray(reinterpret_cast<char *>(this->_data[memAddress]), size);
   this->_data[memAddress + size] = 0x00; // Add zeroe to end the string
   this->_dirty = true;
+
+  if (this->isWriteInPause)
+  {
+    SERIALPRINTLN(" - PAUSE");
+    this->setCrcOnWriteResume = this->setCrcOnWriteResume || setCrc;
+    return true;
+  }
 
   if (!this->commit() || (setCrc && !Flash::setFlashCrc()))
   {
@@ -95,6 +107,13 @@ bool Flash::writeByte(uint8_t memAddress, uint8_t byte, bool setCrc)
   this->_data[memAddress] = byte;
   this->_dirty = true;
 
+  if (this->isWriteInPause)
+  {
+    SERIALPRINTLN(" - PAUSE");
+    this->setCrcOnWriteResume = this->setCrcOnWriteResume || setCrc;
+    return true;
+  }
+
   if (!this->commit() || (setCrc && !Flash::setFlashCrc()))
   {
     SERIALPRINTLN(" - ERR");
@@ -115,7 +134,7 @@ bool Flash::writeByte(uint8_t memAddress, uint8_t byte, bool setCrc)
  * @return true
  * @return false
  */
-bool Flash::writeBit(uint8_t memAddress, uint8_t byteIndex, bool value, bool setCrc)
+bool Flash::writeBit(uint8_t memAddress, uint8_t byteIndex, bit_t value, bool setCrc)
 {
   if (memAddress > EEPROM_FLASH_SIZE)
     return false;
@@ -129,6 +148,13 @@ bool Flash::writeBit(uint8_t memAddress, uint8_t byteIndex, bool value, bool set
 
   bitWrite(this->_data[memAddress], byteIndex, value);
   this->_dirty = true;
+
+  if (this->isWriteInPause)
+  {
+    SERIALPRINTLN(" - PAUSE");
+    this->setCrcOnWriteResume = this->setCrcOnWriteResume || setCrc;
+    return true;
+  }
 
   if (!this->commit() || (setCrc && !Flash::setFlashCrc()))
   {
@@ -184,6 +210,48 @@ uint8_t Flash::readByte(uint8_t memAddress)
 
   SERIALPRINTLN(this->_data[memAddress], HEX);
   return this->_data[memAddress];
+}
+
+/**
+ * @brief Pause write (commit()) requests to EEPROM
+ *
+ * @note Remember to resumeWrite(), in order to record new values
+ */
+void Flash::pauseWrite()
+{
+  SERIALPRINTLN("\tFlaPause");
+  this->isWriteInPause = true;
+}
+
+/**
+ * @brief Write (commit()) data into EEPROM (if have)
+ *
+ * @note Returns false only on commit() or setCRC() errors
+ *
+ * @return true
+ * @return false
+ */
+bool Flash::resumeWrite()
+{
+  SERIALPRINT("\tFlaResume");
+
+  if (!this->isWriteInPause)
+  {
+    SERIALPRINTLN(" - NO PAUSE");
+    return true;
+  }
+  this->isWriteInPause = false;
+
+  if (!this->commit() || (this->setCrcOnWriteResume && !Flash::setFlashCrc()))
+  {
+    this->setCrcOnWriteResume = false;
+    SERIALPRINTLN(" - ERR");
+    return false;
+  }
+
+  this->setCrcOnWriteResume = false;
+  SERIALPRINTLN(" - OK");
+  return true;
 }
 
 /**

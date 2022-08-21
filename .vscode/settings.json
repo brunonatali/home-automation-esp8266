@@ -9,6 +9,12 @@
     "tuple": "cpp",
     "type_traits": "cpp",
     "utility": "cpp",
-    "cstddef": "cpp"
+    "cstddef": "cpp",
+    "*.tcc": "cpp",
+    "string": "cpp",
+    "unordered_map": "cpp",
+    "deque": "cpp",
+    "list": "cpp",
+    "vector": "cpp"
   }
 }

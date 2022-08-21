@@ -34,6 +34,7 @@
 
 #include "CRC32.h"
 #include "Converters.h"
+#include "CustomTypes.h"
 
 #include "ProjectConfig.h"
 
@@ -256,16 +257,21 @@ public:
 
   static Flash *getFlashMemoryInstance();
 
-  bool writeString(uint8_t memAddress, String str, bool setCrc = true);
+  bool writeString(uint8_t memAddress, String str, uint8_t size = 0, bool setCrc = true);
   bool writeByte(uint8_t memAddress, uint8_t byte, bool setCrc = true);
-  bool writeBit(uint8_t memAddress, uint8_t byteIndex, bool value, bool setCrc = true);
+  bool writeBit(uint8_t memAddress, uint8_t byteIndex, bit_t value, bool setCrc = true);
 
   String readString(uint8_t memAddress, uint8_t size);
   uint8_t readByte(uint8_t memAddress);
 
   void erase();
+  void pauseWrite();
+  bool resumeWrite();
 
 private:
+  bool isWriteInPause;
+  bool setCrcOnWriteResume;
+
   uint32_t calcFlashCrc();
   bool setFlashCrc();
   uint32_t getFlashCrc();

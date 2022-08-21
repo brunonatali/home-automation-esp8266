@@ -32,8 +32,24 @@
 #include "NibleStep.h"
 #include "CustomTypes.h"
 #include "Flash.h"
+#include "IOConfig.h"
 
 #include "IPAddress.h"
+
+typedef enum flash_value_result
+{
+  OK,
+  ERROR,
+  WRONG_STRING_SIZE,
+  SAME_VALUE_NOT_ALLOWED
+} flash_value_result;
+
+enum qqq
+{
+  OK,
+  ERROR,
+  WRONG_STRING_SIZE
+};
 
 typedef enum button_mode
 {
@@ -48,7 +64,6 @@ typedef enum button_mode
   REMOTE_OUTPUT_3 = LIGHT_MODE_STEP_REMOTE_OUTPUT_3,
   REMOTE_OUTPUT_4 = LIGHT_MODE_STEP_REMOTE_OUTPUT_4,
   REMOTE_OUTPUT_5 = LIGHT_MODE_STEP_REMOTE_OUTPUT_5,
-  DISABLED_BY_SOFTWARE = LIGHT_MODE_STEP_DISABLED_BY_SOFTWARE,
   DISABLED = LIGHT_MODE_STEP_DISABLED
 } button_mode;
 
@@ -92,6 +107,33 @@ typedef enum seconds_step
   SEC_60 = SECONDS_60,
 } seconds_step;
 
+/**
+ * Wifi mode is stored into bit, so never add more possibilities
+ */
+typedef enum wifi_mode
+{
+  ACCESS_POINT = 0,
+  WIFI_CLIENT = 1
+} wifi_mode;
+
+/**
+ * Button logic level is stored into bit, so never add more possibilities
+ */
+typedef enum button_logic_level
+{
+  _LOW = 0,
+  _HIGH = 1
+} button_logic_level;
+
+/**
+ * Syatem auto lock is stored into bit, so never add more possibilities
+ */
+typedef enum system_auto_lock
+{
+  DISABLED = 0,
+  ENABLED = 1
+} system_auto_lock;
+
 class FlashValues
 {
 public:
@@ -109,9 +151,9 @@ public:
 
   uint16_t getButtonHoldPeriod();
 
-  button_mode getButtonMode(uint8_t buttonIndex);
+  button_mode getButtonMode(button_index buttonIndex);
 
-  uint8_t getOutputDimmer(uint8_t outputIndex);
+  uint8_t getOutputDimmer(output_index outputIndex);
 
   uint8_t getButtonsDimmer();
 
@@ -123,11 +165,11 @@ public:
 
   String getWifiPassword();
 
-  String getButtonAlias(uint8_t buttonIndex);
+  String getButtonAlias(button_index buttonIndex);
 
   String getRoomAlias();
 
-  uint8_t getButtonRemoteAddress(uint8_t buttonIndex);
+  uint8_t getButtonRemoteAddress(button_index buttonIndex);
 
   uint8_t getMyAddress();
 
@@ -137,11 +179,57 @@ public:
 
   bit_t getSystemAutoLock();
 
-  bit_t getButtonHandleHold(uint8_t buttonIndex);
+  bit_t getButtonHandleHold(button_index buttonIndex);
 
   bit_t getEraseFlashBit();
 
-  bit_t getSetFlashDefaultsBit();
+  bit_t getDefaultConfigFlashBit();
+
+  /**
+   * SETTERS
+   */
+
+  flash_value_result setWifiMode(wifi_mode mode);
+
+  flash_value_result setButtonLogicLevel(button_logic_level logicLevel);
+
+  flash_value_result setButtonHoldTimeout(seconds_step time);
+
+  flash_value_result setButtonHoldPeriod(seconds_step time);
+
+  flash_value_result setButtonMode(button_index buttonIndex, button_mode mode);
+
+  flash_value_result setOutputDimmer(output_index outputIndex, light_dimmer dimmer);
+
+  flash_value_result setButtonsDimmer(light_dimmer dimmer);
+
+  flash_value_result setConnectionIp(uint8_t ip4_addr1, uint8_t ip4_addr2, uint8_t ip4_addr3, uint8_t ip4_addr4);
+
+  flash_value_result setConnectionPort(uint16_t port);
+
+  flash_value_result setWifiSSID(String ssid);
+
+  flash_value_result setWifiPassword(String password);
+
+  flash_value_result setButtonAlias(button_index buttonIndex, String name);
+
+  flash_value_result setRoomAlias(String name);
+
+  flash_value_result setButtonRemoteAddress(button_index buttonIndex, uint8_t address);
+
+  flash_value_result setMyAddress(uint8_t address);
+
+  flash_value_result setSystemLockTimeout(seconds_step time);
+
+  flash_value_result setSytemLockPeriod(seconds_step time);
+
+  flash_value_result setSystemAutoLock(system_auto_lock autoLock);
+
+  flash_value_result setButtonHandleHold(button_index buttonIndex, bit_t hold);
+
+  flash_value_result setEraseFlashBit(bit_t erase);
+
+  flash_value_result setDefaultConfigFlashBit(bit_t config);
 
 private:
   Flash *FlashMemmory;

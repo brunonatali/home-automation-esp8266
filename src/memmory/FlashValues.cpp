@@ -90,7 +90,7 @@ uint16_t FlashValues::getButtonHoldPeriod()
  *
  * @return button_mode
  */
-button_mode FlashValues::getButtonMode(uint8_t buttonIndex)
+button_mode FlashValues::getButtonMode(button_index buttonIndex)
 {
   SERIALPRINT("FlaVal->getButtonMode(");
   SERIALPRINT(buttonIndex);
@@ -142,7 +142,7 @@ button_mode FlashValues::getButtonMode(uint8_t buttonIndex)
  *
  * @return uint8_t
  */
-uint8_t FlashValues::getOutputDimmer(uint8_t outputIndex)
+uint8_t FlashValues::getOutputDimmer(output_index outputIndex)
 {
   SERIALPRINT("FlaVal->getOutputDimmer(");
   SERIALPRINT(outputIndex);
@@ -255,7 +255,7 @@ String FlashValues::getWifiPassword()
  *
  * @return String
  */
-String FlashValues::getButtonAlias(uint8_t buttonIndex)
+String FlashValues::getButtonAlias(button_index buttonIndex)
 {
   SERIALPRINT("FlaVal->getButtonAlias(");
   SERIALPRINT(buttonIndex);
@@ -306,7 +306,7 @@ String FlashValues::getRoomAlias()
  *
  * @return uint8_t
  */
-uint8_t FlashValues::getButtonRemoteAddress(uint8_t buttonIndex)
+uint8_t FlashValues::getButtonRemoteAddress(button_index buttonIndex)
 {
   SERIALPRINT("FlaVal->getButtonRemoteAddress(");
   SERIALPRINT(buttonIndex);
@@ -399,7 +399,7 @@ bit_t FlashValues::getSystemAutoLock()
  *
  * @return bit_t
  */
-bit_t FlashValues::getButtonHandleHold(uint8_t buttonIndex)
+bit_t FlashValues::getButtonHandleHold(button_index buttonIndex)
 {
   SERIALPRINT("FlaVal->getButtonHandleHold(");
   SERIALPRINT(buttonIndex);
@@ -470,11 +470,759 @@ bit_t FlashValues::getEraseFlashBit()
  *
  * @return bit_t
  */
-bit_t FlashValues::getSetFlashDefaultsBit()
+bit_t FlashValues::getDefaultConfigFlashBit()
 {
-  SERIALPRINTLN("FlaVal->getSetFlashDefaultsBit()");
+  SERIALPRINTLN("FlaVal->getDefaultConfigFlashBit()");
 
   return ByteManipulation::getBitOnByte(
       this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
       EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS);
+}
+
+/**
+ * @brief Set Wifi Access Point or Client mode
+ *
+ * @param mode
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setWifiMode(wifi_mode mode)
+{
+  SERIALPRINT("FlaVal->setWifiMode(");
+  SERIALPRINT(mode, BIN);
+  SERIALPRINTLN(")");
+
+  return this->FlashMemmory->writeBit(
+             EEPROM_ADDRESS_CONFIG_AREA_1,
+             EEPROM_ADDRESS_CONFIG_AREA_1_WIFI_MODE,
+             mode)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set Touch button hardware logic level
+ *
+ * @param logicLevel
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonLogicLevel(button_logic_level logicLevel)
+{
+  SERIALPRINT("FlaVal->setButtonLogicLevel(");
+  SERIALPRINT(logicLevel, BIN);
+  SERIALPRINTLN(")");
+
+  return this->FlashMemmory->writeBit(
+             EEPROM_ADDRESS_CONFIG_AREA_1,
+             EEPROM_ADDRESS_CONFIG_AREA_1_BUTTON_LOGIC_LEVEL,
+             logicLevel)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set time seconds step to set button holded in miliseconds
+ *
+ * @param time
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonHoldTimeout(seconds_step time)
+{
+  SERIALPRINT("FlaVal->setButtonHoldTimeout(");
+  SERIALPRINT(time, DEC);
+  SERIALPRINTLN(")");
+
+  uint8_t flashByte =
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
+  ByteManipulation::setFirstNibbleOnByte(&flashByte, time);
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_BUTTON_HOLD_TIME,
+             flashByte)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set time seconds step to let buttons in hold mode (after holded)
+ *
+ * @param time
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonHoldPeriod(seconds_step time)
+{
+  SERIALPRINT("FlaVal->setButtonHoldPeriod(");
+  SERIALPRINT(time, DEC);
+  SERIALPRINTLN(")");
+
+  uint8_t flashByte =
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
+  ByteManipulation::setSecondNibbleOnByte(&flashByte, time);
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_BUTTON_HOLD_TIME,
+             flashByte)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set button mode configuration
+ *
+ * @param buttonIndex
+ * @param mode
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonMode(button_index buttonIndex, button_mode mode)
+{
+  SERIALPRINT("FlaVal->setButtonMode(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT("->");
+  SERIALPRINT(mode);
+  SERIALPRINTLN(")");
+
+  bool writeResult = false;
+
+  if (buttonIndex == 0)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_1_MODE);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_1_MODE,
+        flashByte);
+  }
+  else if (buttonIndex == 1)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_2_MODE);
+    ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_2_MODE,
+        flashByte);
+  }
+  else if (buttonIndex == 2)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_3_MODE);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_3_MODE,
+        flashByte);
+  }
+  else if (buttonIndex == 3)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_4_MODE);
+    ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_4_MODE,
+        flashByte);
+  }
+  else if (buttonIndex == 4)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_5_MODE);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_5_MODE,
+        flashByte);
+  }
+  else if (buttonIndex == 5)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_6_MODE);
+    ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_BUTTON_6_MODE,
+        flashByte);
+  }
+
+  return writeResult ? flash_value_result::OK : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set output configured dimmer
+ *
+ * @param outputIndex
+ * @param dimmer
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setOutputDimmer(output_index outputIndex, light_dimmer dimmer)
+{
+  SERIALPRINT("FlaVal->setOutputDimmer(");
+  SERIALPRINT(outputIndex);
+  SERIALPRINT("->");
+  SERIALPRINT(dimmer);
+  SERIALPRINTLN(")");
+
+  bool writeResult = false;
+
+  if (outputIndex == 0)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_1_DIMMER);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_OUTPUT_1_DIMMER,
+        flashByte);
+  }
+  else if (outputIndex == 1)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_2_DIMMER);
+    ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_OUTPUT_2_DIMMER,
+        flashByte);
+  }
+  else if (outputIndex == 2)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_3_DIMMER);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_OUTPUT_3_DIMMER,
+        flashByte);
+  }
+  else if (outputIndex == 3)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_4_DIMMER);
+    ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_OUTPUT_4_DIMMER,
+        flashByte);
+  }
+  else if (outputIndex == 4)
+  {
+    uint8_t flashByte =
+        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_5_DIMMER);
+    ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
+
+    writeResult = this->FlashMemmory->writeByte(
+        EEPROM_ADDRESS_OUTPUT_5_DIMMER,
+        flashByte);
+  }
+  return writeResult ? flash_value_result::OK : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set buttons led dimmer value
+ *
+ * @param dimmer
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonsDimmer(light_dimmer dimmer)
+{
+  SERIALPRINT("FlaVal->setButtonsDimmer(");
+  SERIALPRINT(dimmer, DEC);
+  SERIALPRINTLN(")");
+
+  uint8_t flashByte =
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTONS_LED_DIMMER);
+  ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_BUTTONS_LED_DIMMER,
+             flashByte)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set connection (mananger / own) IP
+ *
+ * @param ip4_addr1
+ * @param ip4_addr2
+ * @param ip4_addr3
+ * @param ip4_addr4
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setConnectionIp(uint8_t ip4_addr1, uint8_t ip4_addr2, uint8_t ip4_addr3, uint8_t ip4_addr4)
+{
+  SERIALPRINT("FlaVal->setConnectionIp(");
+  SERIALPRINT(ip4_addr1, DEC);
+  SERIALPRINT(".");
+  SERIALPRINT(ip4_addr2, DEC);
+  SERIALPRINT(".");
+  SERIALPRINT(ip4_addr3, DEC);
+  SERIALPRINT(".");
+  SERIALPRINT(ip4_addr4, DEC);
+  SERIALPRINTLN(")");
+
+  this->FlashMemmory->pauseWrite();
+
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_IP_1, ip4_addr1);
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_IP_2, ip4_addr2);
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_IP_3, ip4_addr3);
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_IP_4, ip4_addr4);
+
+  return this->FlashMemmory->resumeWrite()
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set connection (mananger / own) port
+ *
+ * @param port
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setConnectionPort(uint16_t port)
+{
+  SERIALPRINT("FlaVal->setConnectionPort(");
+  SERIALPRINT(port, DEC);
+  SERIALPRINTLN(")");
+
+  this->FlashMemmory->pauseWrite();
+
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_PORT_1,
+      (uint8_t)(port >> 8));
+  (void)this->FlashMemmory->writeByte(
+      EEPROM_ADDRESS_CONNECTION_PORT_2,
+      (uint8_t)(port & 0x00FF));
+
+  return this->FlashMemmory->resumeWrite()
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set Wifi SSID
+ *
+ * @param ssid
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setWifiSSID(String ssid)
+{
+  SERIALPRINT("FlaVal->setWifiSSID(");
+  SERIALPRINT(ssid);
+  SERIALPRINTLN(")");
+
+  uint8_t size = ssid.length();
+  if (!size || size > 50)
+  {
+    return flash_value_result::WRONG_STRING_SIZE;
+  }
+
+  return this->FlashMemmory->writeString(
+             EEPROM_ADDRESS_WIFI_SSID, ssid, size)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Get Wifi Password
+ *
+ * @param password
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setWifiPassword(String password)
+{
+  SERIALPRINT("FlaVal->setWifiPassword(");
+  SERIALPRINT(password);
+  SERIALPRINTLN(")");
+
+  uint8_t size = password.length();
+  if (!size || size > 50)
+  {
+    return flash_value_result::WRONG_STRING_SIZE;
+  }
+
+  return this->FlashMemmory->writeString(
+             EEPROM_ADDRESS_WIFI_PASSWORD, password, size)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set button alias (name)
+ *
+ * @param buttonIndex
+ * @param name
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonAlias(button_index buttonIndex, String name)
+{
+  SERIALPRINT("FlaVal->setButtonAlias(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT("->");
+  SERIALPRINT(name);
+  SERIALPRINTLN(")");
+
+  uint8_t size = name.length();
+  if (!size || size > 20)
+  {
+    return flash_value_result::WRONG_STRING_SIZE;
+  }
+
+  if (buttonIndex == 0)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_1_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 1)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_2_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 2)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_3_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 3)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_4_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 4)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_5_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 5)
+  {
+    return this->FlashMemmory->writeString(
+               EEPROM_ADDRESS_BUTTON_6_ALIAS, name, size)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+
+  return flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set room alias (name)
+ *
+ * @param name
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setRoomAlias(String name)
+{
+  SERIALPRINT("FlaVal->setRoomAlias(");
+  SERIALPRINT(name);
+  SERIALPRINTLN(")");
+
+  uint8_t size = name.length();
+  if (!size || size > 20)
+  {
+    return flash_value_result::WRONG_STRING_SIZE;
+  }
+
+  return this->FlashMemmory->writeString(
+             EEPROM_ADDRESS_ROOM_ALIAS, name, size)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set button alias
+ *
+ * @param buttonIndex
+ * @param address
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonRemoteAddress(button_index buttonIndex, uint8_t address)
+{
+  SERIALPRINT("FlaVal->setButtonRemoteAddress(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT("->");
+  SERIALPRINT(address, HEX);
+  SERIALPRINTLN(")");
+
+  if (buttonIndex == 0)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_1, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 1)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_2, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 2)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_3, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 3)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_4, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 4)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_5, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 5)
+  {
+    return this->FlashMemmory->writeByte(
+               EEPROM_ADDRESS_REMOTE_ADDRESS_6, address)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+
+  return flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set defined device address
+ *
+ * @note Never set it by your own. Only manager can set the device address
+ *
+ * @param address
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setMyAddress(uint8_t address)
+{
+  SERIALPRINT("FlaVal->setMyAddress(");
+  SERIALPRINT(address, HEX);
+  SERIALPRINTLN(")");
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_DEVICE_ADDRESS, address)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set time (step seconds) that system must be locked after hold lock button(s)
+ *
+ * @param time
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setSystemLockTimeout(seconds_step time)
+{
+  SERIALPRINT("FlaVal->setSystemLockTimeout(");
+  SERIALPRINT(time, DEC);
+  SERIALPRINTLN(")");
+
+  uint8_t flashByte =
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT);
+  ByteManipulation::setFirstNibbleOnByte(&flashByte, time);
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT,
+             flashByte)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set time (step seconds) of inactivity to auto lock the system
+ *
+ * @param time
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setSytemLockPeriod(seconds_step time)
+{
+  SERIALPRINT("FlaVal->setSytemLockPeriod(");
+  SERIALPRINT(time, DEC);
+  SERIALPRINTLN(")");
+
+  uint8_t flashByte =
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_PERIOD);
+  ByteManipulation::setSecondNibbleOnByte(&flashByte, time);
+
+  return this->FlashMemmory->writeByte(
+             EEPROM_ADDRESS_BUTTON_HOLD_TIME,
+             flashByte)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set system auto (buttons) lock configuration
+ *
+ * @param autoLock
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setSystemAutoLock(system_auto_lock autoLock)
+{
+  SERIALPRINT("FlaVal->setSystemAutoLock(");
+  SERIALPRINT(autoLock, BIN);
+  SERIALPRINTLN(")");
+
+  return this->FlashMemmory->writeBit(
+             EEPROM_ADDRESS_CONFIG_AREA_2,
+             EEPROM_ADDRESS_CONFIG_AREA_2_AUTO_LOCK,
+             autoLock)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set the button (buttonIndex) to control lock/unlock system
+ *
+ * @param buttonIndex
+ * @param hold
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bit_t hold)
+{
+  SERIALPRINT("FlaVal->setButtonHandleHold(");
+  SERIALPRINT(buttonIndex);
+  SERIALPRINT("->");
+  SERIALPRINT(hold, BIN);
+  SERIALPRINTLN(")");
+
+  bool writeResult = false;
+
+  if (buttonIndex == 0)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_1,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 1)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_2,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 2)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_3,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 3)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_4,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 4)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_5,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+  else if (buttonIndex == 5)
+  {
+    return this->FlashMemmory->writeBit(
+               EEPROM_ADDRESS_CONFIG_AREA_2,
+               EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_6,
+               hold)
+               ? flash_value_result::OK
+               : flash_value_result::ERROR;
+  }
+
+  return flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set EEPROM erase flash value
+ *
+ * @note This work by setting this to a diferent value hater
+ * than currently recorded
+ *
+ * @param erase
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setEraseFlashBit(bit_t erase)
+{
+  SERIALPRINT("FlaVal->setEraseFlashBit(");
+  SERIALPRINT(erase, BIN);
+  SERIALPRINTLN(")");
+
+  bit_t current = ByteManipulation::getBitOnByte(
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH);
+
+  if (current == erase)
+  {
+    return flash_value_result::SAME_VALUE_NOT_ALLOWED;
+  }
+
+  return this->FlashMemmory->writeBit(
+             EEPROM_ADDRESS_CONFIG_AREA_3,
+             EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH,
+             erase)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Set EEPROM reset configuration value
+ *
+ * @note This work by setting this to a diferent value hater
+ * than currently recorded
+ *
+ * @param config
+ * @return flash_value_result
+ */
+flash_value_result FlashValues::setDefaultConfigFlashBit(bit_t config)
+{
+  SERIALPRINT("FlaVal->setDefaultConfigFlashBit(");
+  SERIALPRINT(config, BIN);
+  SERIALPRINTLN(")");
+
+  bit_t current = ByteManipulation::getBitOnByte(
+      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS);
+
+  if (current == config)
+  {
+    return flash_value_result::SAME_VALUE_NOT_ALLOWED;
+  }
+
+  return this->FlashMemmory->writeBit(
+             EEPROM_ADDRESS_CONFIG_AREA_3,
+             EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS,
+             config)
+             ? flash_value_result::OK
+             : flash_value_result::ERROR;
 }
