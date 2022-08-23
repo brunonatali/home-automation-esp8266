@@ -237,8 +237,12 @@ public:
 
   bool restoreDefaults();
 
+  bool validateFlash();
+
 private:
   Flash *FlashMemmory;
+
+  void setFlashBitWriteControllers(bool resumeWrite = true);
 };
 
 #endif

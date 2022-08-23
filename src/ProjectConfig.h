@@ -6,11 +6,29 @@
 #endif
 
 /**
- * Hardware version
+ * @brief Hardware version
  * v0 - Buttons are mirrored
  * v1 - Buttons corrected
  */
 #define HW_VERSION 1
+
+/**
+ * @brief Use this to ERASE FLASH at bootup
+ *
+ * @note You need to change this value (0/1) every time you want
+ * to erase flash after record a new firmware. After firts boot
+ * and memmory erase, this value will be recorded into flash
+ */
+#define MANUAL_SET_BIT_TO_ERASE_FLASH 0
+
+/**
+ * @brief Use this to set defsult values on flash
+ *
+ * @note You need to change this value (0/1) every time you want
+ * to restore flash after record a new firmware. After firts boot
+ * and memmory restore, this value will be recorded into flash
+ */
+#define MANUAL_SET_BIT_TO_RESTORE_FLASH_DEFAULTS 0
 
 /**
  * @brief Define serial print mock
@@ -24,19 +42,23 @@
 #endif
 
 /**
+ * @brief Gran total of bottons we may have
+ */
+#define TOTAL_BUTTONS_COUNT 6
+
+/**
  * @brief Set the amount of buttons you must use
  * Default value is 6
  *
  * @note A number gratter than 6 takes no effect, will assime 6
  */
 #if SERIAL_DEBUG
-#define BUTTONS_COUNT 5
+#define AVAILABLE_BUTTONS_COUNT 5
 #else
-#define BUTTONS_COUNT 6
+#define AVAILABLE_BUTTONS_COUNT 6
 #endif
 
 /**
- * This value probably not change, but we set here in order to
- * help loops
+ * @brief Gran total of outputs we may have
  */
-#define OUTPUTS_COUNT 5
+#define TOTAL_OUTPUTS_COUNT 5

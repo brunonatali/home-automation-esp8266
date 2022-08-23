@@ -339,3 +339,14 @@ Flash *Flash::getFlashMemoryInstance()
 
   return FlashMemoryInstance;
 }
+
+/**
+ * @brief Just verify if stored CRC is the same CRC calculated
+ *
+ * @return true
+ * @return false
+ */
+bool Flash::isCrcValid()
+{
+  return this->getFlashCrc() == this->calcFlashCrc();
+}

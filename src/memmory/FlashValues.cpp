@@ -1282,7 +1282,7 @@ bool FlashValues::restoreDefaults()
    * @note values are the same (0%) since we do not want to damage a hardware
    * that's incompatible with PWM
    */
-  for (uint8_t i = 0; i < OUTPUTS_COUNT; i++)
+  for (uint8_t i = 0; i < TOTAL_OUTPUTS_COUNT; i++)
   {
     if (i == 0)
     {
@@ -1321,7 +1321,7 @@ bool FlashValues::restoreDefaults()
   /**
    * Set buttons default values
    */
-  for (uint8_t i = 0; i < BUTTONS_COUNT; i++)
+  for (uint8_t i = 0; i < TOTAL_BUTTONS_COUNT; i++)
   {
     if (i == 0)
     {
@@ -1453,4 +1453,51 @@ bool FlashValues::restoreDefaults()
     SERIALPRINTLN(" - ERROR");
 
   return flashWriteResult ? flash_value_result::OK : flash_value_result::ERROR;
+}
+
+/**
+ * @brief Validates flash CRC
+ *
+ * @note This function compares flash write controllers too in order
+ * to perform flash erase / restore default configs during flash
+ * validation process
+ *
+ * @return true if is valid
+ * @return false otherwise
+ */
+bool FlashValues::validateFlash()
+{
+  bool flashChanged = false;
+
+  if (!this->FlashMemmory->isCrcValid() ||
+      this->getEraseFlashBit() != MANUAL_SET_BIT_TO_ERASE_FLASH)
+  {
+    this->FlashMemmory->erase();
+    this->setFlashBitWriteControllers(false);
+    this->restoreDefaults();
+    flashChanged = true;
+  }
+  else if (this->getDefaultConfigFlashBit() != MANUAL_SET_BIT_TO_RESTORE_FLASH_DEFAULTS)
+  {
+    this->setFlashBitWriteControllers(false);
+    this->restoreDefaults();
+    flashChanged = true;
+  }
+
+  return !flashChanged;
+}
+
+/**
+ * @brief Use this to automaticaly set erase and defaults flash bit
+ *
+ * @param restoreWrite Remember to retore write if not done inside
+ */
+void FlashValues::setFlashBitWriteControllers(bool resumeWrite)
+{
+  this->FlashMemmory->pauseWrite();
+  this->setEraseFlashBit(MANUAL_SET_BIT_TO_ERASE_FLASH);
+  this->setDefaultConfigFlashBit(MANUAL_SET_BIT_TO_ERASE_FLASH);
+
+  if (resumeWrite)
+    (void)this->FlashMemmory->resumeWrite();
 }

@@ -267,6 +267,7 @@ public:
   void erase();
   void pauseWrite();
   bool resumeWrite();
+  bool isCrcValid();
 
 private:
   bool isWriteInPause;
