@@ -44,13 +44,6 @@ typedef enum flash_value_result
   SAME_VALUE_NOT_ALLOWED
 } flash_value_result;
 
-enum qqq
-{
-  OK,
-  ERROR,
-  WRONG_STRING_SIZE
-};
-
 typedef enum button_mode
 {
   NOT_CONFIGURED = LIGHT_MODE_STEP_NOT_CONFIGURED,

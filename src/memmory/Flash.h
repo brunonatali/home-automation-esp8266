@@ -248,6 +248,15 @@
 #define EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH 0
 #define EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS 1
 
+/**
+ * @brief Stores Flash instance
+ *
+ * This will help to have only one Flash instance and NEVER
+ * reinitialize EEPROM
+ *
+ * @note In order to use this class remember to get instance
+ * by calling function Flash::getFlashMemoryInstance()
+ */
 Flash *FlashMemoryInstance = nullptr;
 
 class Flash : protected EEPROMClass

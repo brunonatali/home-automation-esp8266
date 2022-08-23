@@ -1467,24 +1467,22 @@ bool FlashValues::restoreDefaults()
  */
 bool FlashValues::validateFlash()
 {
-  bool flashChanged = false;
-
   if (!this->FlashMemmory->isCrcValid() ||
       this->getEraseFlashBit() != MANUAL_SET_BIT_TO_ERASE_FLASH)
   {
     this->FlashMemmory->erase();
     this->setFlashBitWriteControllers(false);
     this->restoreDefaults();
-    flashChanged = true;
+    return false;
   }
   else if (this->getDefaultConfigFlashBit() != MANUAL_SET_BIT_TO_RESTORE_FLASH_DEFAULTS)
   {
     this->setFlashBitWriteControllers(false);
     this->restoreDefaults();
-    flashChanged = true;
+    return false;
   }
 
-  return !flashChanged;
+  return true;
 }
 
 /**
