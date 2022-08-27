@@ -146,7 +146,7 @@ public:
 
   button_mode getButtonMode(button_index buttonIndex);
 
-  uint8_t getOutputDimmer(output_index outputIndex);
+  light_dimmer getOutputDimmer(output_index outputIndex);
 
   uint8_t getButtonsDimmer();
 

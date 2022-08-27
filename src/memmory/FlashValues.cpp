@@ -142,7 +142,7 @@ button_mode FlashValues::getButtonMode(button_index buttonIndex)
  *
  * @return uint8_t
  */
-uint8_t FlashValues::getOutputDimmer(output_index outputIndex)
+light_dimmer FlashValues::getOutputDimmer(output_index outputIndex)
 {
   SERIALPRINT("FlaVal->getOutputDimmer(");
   SERIALPRINT(outputIndex);
@@ -150,37 +150,37 @@ uint8_t FlashValues::getOutputDimmer(output_index outputIndex)
 
   if (outputIndex == 0)
   {
-    return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getFirstNibbleOnByte(
+    return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
         this->FlashMemmory->readByte(
-            EEPROM_ADDRESS_OUTPUT_1_DIMMER))];
+            EEPROM_ADDRESS_OUTPUT_1_DIMMER));
   }
   else if (outputIndex == 1)
   {
-    return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getSecondNibbleOnByte(
+    return (light_dimmer)ByteManipulation::getSecondNibbleOnByte(
         this->FlashMemmory->readByte(
-            EEPROM_ADDRESS_OUTPUT_2_DIMMER))];
+            EEPROM_ADDRESS_OUTPUT_2_DIMMER));
   }
   else if (outputIndex == 2)
   {
-    return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getFirstNibbleOnByte(
+    return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
         this->FlashMemmory->readByte(
-            EEPROM_ADDRESS_OUTPUT_3_DIMMER))];
+            EEPROM_ADDRESS_OUTPUT_3_DIMMER));
   }
   else if (outputIndex == 3)
   {
-    return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getSecondNibbleOnByte(
+    return (light_dimmer)ByteManipulation::getSecondNibbleOnByte(
         this->FlashMemmory->readByte(
-            EEPROM_ADDRESS_OUTPUT_4_DIMMER))];
+            EEPROM_ADDRESS_OUTPUT_4_DIMMER));
   }
   else if (outputIndex == 4)
   {
-    return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getFirstNibbleOnByte(
+    return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
         this->FlashMemmory->readByte(
-            EEPROM_ADDRESS_OUTPUT_5_DIMMER))];
+            EEPROM_ADDRESS_OUTPUT_5_DIMMER));
   }
 
   /*  ERROR - Wrong button index  */
-  return NIBLE_STEP_PERCENTAGE[light_dimmer::PERCENT_0];
+  return light_dimmer::PERCENT_0;
 }
 
 /**

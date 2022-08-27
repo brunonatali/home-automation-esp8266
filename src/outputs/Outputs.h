@@ -1,5 +1,5 @@
 /**
- * Nible (4 bit) step definition.
+ * Manager for all kinds of outputs
  * Copyright (c) 2022 Bruno Natali - b010010010n@gmail.com
  *
  * License (MIT license):
@@ -22,67 +22,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef IOConfig_h
-#define IOConfig_h
+#ifndef Outputs_h
+#define Outputs_h
 
 #include <Arduino.h>
 
 #include "ProjectConfig.h"
+#include "IOConfig.h"
+#include "FlashValues.h"
+#include "FisicalOutput.h"
 
-typedef enum button_number
-{
-  BUTTON_1 = 1,
-  BUTTON_2 = 2,
-  BUTTON_3 = 3,
-  BUTTON_4 = 4,
-  BUTTON_5 = 5,
-  BUTTON_6 = 6,
+/**
+ * @brief Store all FIsicalOutput instancies, making easy to access one instance
+ * from another
+ */
+FisicalOutput *fisicalOutputs[TOTAL_OUTPUTS_COUNT];
 
-} button_number;
+/**
+ * @brief Controls outputs instantiation. Helps to be sure that outputs is
+ * initiated just onde
+ */
+bool isOutputsInitiated = false;
 
-typedef enum button_index
-{
-  BUTTON_1 = 0,
-  BUTTON_2 = 1,
-  BUTTON_3 = 2,
-  BUTTON_4 = 3,
-  BUTTON_5 = 4,
-  BUTTON_6 = 5,
+/**
+ * FUNCTIONS
+ */
 
-} button_index;
-
-typedef enum output_number
-{
-  OUTPUT_1 = 1,
-  OUTPUT_2 = 2,
-  OUTPUT_3 = 3,
-  OUTPUT_4 = 4,
-  OUTPUT_5 = 5,
-} output_number;
-
-typedef enum output_index
-{
-  OUTPUT_1 = 0,
-  OUTPUT_2 = 1,
-  OUTPUT_3 = 2,
-  OUTPUT_4 = 3,
-  OUTPUT_5 = 4,
-} output_index;
-
-#if SERIAL_DEBUG
-#if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {0, 4, 10, 14, 12, 13};
-#elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 0, 4, 10};
-#endif
-#else
-#if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {1, 4, 10, 14, 12, 13};
-#elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 1, 4, 10};
-#endif
-#endif
-
-const uint8_t OUTPUTS_PINOUT[TOTAL_OUTPUTS_COUNT] = {0, 3, 5, 15, 16};
+void initiateAllOutputs();
 
 #endif

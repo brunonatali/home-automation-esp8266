@@ -1,5 +1,5 @@
 /**
- * Nible (4 bit) step definition.
+ * Creates instance to managa fisical outputs
  * Copyright (c) 2022 Bruno Natali - b010010010n@gmail.com
  *
  * License (MIT license):
@@ -22,67 +22,58 @@
  * THE SOFTWARE.
  */
 
-#ifndef IOConfig_h
-#define IOConfig_h
+#ifndef FisicalOutput_h
+#define FisicalOutput_h
 
 #include <Arduino.h>
 
 #include "ProjectConfig.h"
+#include "IOConfig.h"
+#include "FlashValues.h"
+#include "NibleStep.h"
 
-typedef enum button_number
+typedef enum fisical_output_state
 {
-  BUTTON_1 = 1,
-  BUTTON_2 = 2,
-  BUTTON_3 = 3,
-  BUTTON_4 = 4,
-  BUTTON_5 = 5,
-  BUTTON_6 = 6,
+  OFF,
+  ON,
+  NOT_INITIALIZED,
+  DISABLED
+} fisical_output_state;
 
-} button_number;
-
-typedef enum button_index
+typedef enum fisical_output_mode
 {
-  BUTTON_1 = 0,
-  BUTTON_2 = 1,
-  BUTTON_3 = 2,
-  BUTTON_4 = 3,
-  BUTTON_5 = 4,
-  BUTTON_6 = 5,
+  SWITCH,
+  DIMMER
+} fisical_output_mode;
 
-} button_index;
-
-typedef enum output_number
+class FisicalOutput
 {
-  OUTPUT_1 = 1,
-  OUTPUT_2 = 2,
-  OUTPUT_3 = 3,
-  OUTPUT_4 = 4,
-  OUTPUT_5 = 5,
-} output_number;
 
-typedef enum output_index
-{
-  OUTPUT_1 = 0,
-  OUTPUT_2 = 1,
-  OUTPUT_3 = 2,
-  OUTPUT_4 = 3,
-  OUTPUT_5 = 4,
-} output_index;
+public:
+  FisicalOutput(output_number outputNumber);
 
-#if SERIAL_DEBUG
-#if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {0, 4, 10, 14, 12, 13};
-#elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 0, 4, 10};
-#endif
-#else
-#if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {1, 4, 10, 14, 12, 13};
-#elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 1, 4, 10};
-#endif
-#endif
+  bool turnOn();
 
-const uint8_t OUTPUTS_PINOUT[TOTAL_OUTPUTS_COUNT] = {0, 3, 5, 15, 16};
+  bool turnOff();
+
+  bool setDimmerValue(light_dimmer value);
+
+  fisical_output_mode getMode();
+
+  fisical_output_state getState();
+
+  output_index static getIndexByNumber(output_number buttonNumber);
+
+private:
+  uint8_t pin;
+  bool dimmable = true;
+  light_dimmer dimmerValue;
+  fisical_output_state state = fisical_output_state::NOT_INITIALIZED;
+  fisical_output_mode mode = fisical_output_mode::SWITCH;
+  output_number number;
+  output_index index;
+
+  FlashValues *flashValues;
+};
 
 #endif
