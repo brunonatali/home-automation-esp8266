@@ -69,20 +69,25 @@ typedef enum output_index
   OUTPUT_5 = 4,
 } output_index;
 
+/**
+ * @brief Defines pinout numbers
+ *
+ * @note Any value less than 0 must be treated as not to assign
+ */
 #if SERIAL_DEBUG
 #if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {0, 4, 10, 14, 12, 13};
+const int8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {-1, 4, 10, 14, 12, 13};
 #elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 0, 4, 10};
+const int8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, -1, 4, 10};
 #endif
 #else
 #if HW_VERSION == 0
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {1, 4, 10, 14, 12, 13};
+const int8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {1, 4, 10, 14, 12, 13};
 #elif HW_VERSION == 1
-const uint8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 1, 4, 10};
+const int8_t BUTTONS_PINOUT[TOTAL_BUTTONS_COUNT] = {14, 12, 13, 1, 4, 10};
 #endif
 #endif
 
-const uint8_t OUTPUTS_PINOUT[TOTAL_OUTPUTS_COUNT] = {0, 3, 5, 15, 16};
+const int8_t OUTPUTS_PINOUT[TOTAL_OUTPUTS_COUNT] = {0, 3, 5, 15, 16};
 
 #endif

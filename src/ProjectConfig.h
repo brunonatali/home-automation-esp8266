@@ -17,7 +17,7 @@
  *
  * @note You need to change this value (0/1) every time you want
  * to erase flash after record a new firmware. After firts boot
- * and memmory erase, this value will be recorded into flash
+ * and memory erase, this value will be recorded into flash
  */
 #define MANUAL_SET_BIT_TO_ERASE_FLASH 0
 
@@ -26,7 +26,7 @@
  *
  * @note You need to change this value (0/1) every time you want
  * to restore flash after record a new firmware. After firts boot
- * and memmory restore, this value will be recorded into flash
+ * and memory restore, this value will be recorded into flash
  */
 #define MANUAL_SET_BIT_TO_RESTORE_FLASH_DEFAULTS 0
 
@@ -50,7 +50,7 @@
  * @brief Set the amount of buttons you must use
  * Default value is 6
  *
- * @note A number gratter than 6 takes no effect, will assime 6
+ * @note A number gratter than 6 takes no effect, will assume 6
  */
 #if SERIAL_DEBUG
 #define AVAILABLE_BUTTONS_COUNT 5

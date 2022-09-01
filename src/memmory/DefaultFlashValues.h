@@ -249,12 +249,19 @@
  * @note This default will be set as 8 bit, because we do not need
  * configurations in a separated define at this moment.
  *
- * Bit 1 - System auto lock enabled
+ * Bit 0 - System auto lock enabled. Defalts to ENABLED (1)
  *
  * Will use the upper 2 buttons to perform system lock / unlock
- * Bit 2 - Button 1
+ * Bit 1 - Button 1
  * Bit 4 - Button 4
+ * Alternativelly while serial enabled will use 2 botton buttons
+ * Bit 3 - Button 3
+ * Bit 6 - Button 6
  */
-#define FLASH_DEFAULT_SYSTEM_LOCK_CONFIG 0x13
+#if SERIAL_DEBUG
+#define FLASH_DEFAULT_SYSTEM_LOCK_CONFIG 0x49 // 0x48 + 0x01
+#else
+#define FLASH_DEFAULT_SYSTEM_LOCK_CONFIG 0x13 // 0x12 + 0x01
+#endif
 
 #endif

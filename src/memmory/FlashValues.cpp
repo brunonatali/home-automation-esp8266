@@ -26,7 +26,7 @@
 
 FlashValues::FlashValues()
 {
-  this->FlashMemmory = Flash::getFlashMemoryInstance();
+  this->FlashMemory = Flash::getFlashMemoryInstance();
 }
 
 /**
@@ -39,7 +39,7 @@ bit_t FlashValues::getWifiMode()
   SERIALPRINTLN("FlaVal->getWifiMode()");
 
   return ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_1),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_1),
       EEPROM_ADDRESS_CONFIG_AREA_1_WIFI_MODE);
 }
 
@@ -53,7 +53,7 @@ bit_t FlashValues::getButtonLogicLevel()
   SERIALPRINTLN("FlaVal->getButtonLogicLevel()");
 
   return ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_1),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_1),
       EEPROM_ADDRESS_CONFIG_AREA_1_BUTTON_LOGIC_LEVEL);
 }
 
@@ -67,7 +67,7 @@ uint16_t FlashValues::getButtonHoldTimeout()
   SERIALPRINTLN("FlaVal->getButtonHoldTimeout()");
 
   return NIBLE_STEP_SECONDS[ByteManipulation::getFirstNibbleOnByte(
-      this->FlashMemmory->readByte(
+      this->FlashMemory->readByte(
           EEPROM_ADDRESS_BUTTON_HOLD_TIME))];
 }
 
@@ -81,7 +81,7 @@ uint16_t FlashValues::getButtonHoldPeriod()
   SERIALPRINTLN("FlaVal->getButtonHoldPeriod()");
 
   return NIBLE_STEP_SECONDS[ByteManipulation::getSecondNibbleOnByte(
-      this->FlashMemmory->readByte(
+      this->FlashMemory->readByte(
           EEPROM_ADDRESS_BUTTON_HOLD_TIME))];
 }
 
@@ -99,37 +99,37 @@ button_mode FlashValues::getButtonMode(button_index buttonIndex)
   if (buttonIndex == 0)
   {
     return (button_mode)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_1_MODE));
   }
   else if (buttonIndex == 1)
   {
     return (button_mode)ByteManipulation::getSecondNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_2_MODE));
   }
   else if (buttonIndex == 2)
   {
     return (button_mode)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_3_MODE));
   }
   else if (buttonIndex == 3)
   {
     return (button_mode)ByteManipulation::getSecondNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_4_MODE));
   }
   else if (buttonIndex == 4)
   {
     return (button_mode)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_5_MODE));
   }
   else if (buttonIndex == 5)
   {
     return (button_mode)ByteManipulation::getSecondNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_BUTTON_6_MODE));
   }
 
@@ -151,31 +151,31 @@ light_dimmer FlashValues::getOutputDimmer(output_index outputIndex)
   if (outputIndex == 0)
   {
     return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_OUTPUT_1_DIMMER));
   }
   else if (outputIndex == 1)
   {
     return (light_dimmer)ByteManipulation::getSecondNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_OUTPUT_2_DIMMER));
   }
   else if (outputIndex == 2)
   {
     return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_OUTPUT_3_DIMMER));
   }
   else if (outputIndex == 3)
   {
     return (light_dimmer)ByteManipulation::getSecondNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_OUTPUT_4_DIMMER));
   }
   else if (outputIndex == 4)
   {
     return (light_dimmer)ByteManipulation::getFirstNibbleOnByte(
-        this->FlashMemmory->readByte(
+        this->FlashMemory->readByte(
             EEPROM_ADDRESS_OUTPUT_5_DIMMER));
   }
 
@@ -193,7 +193,7 @@ uint8_t FlashValues::getButtonsDimmer()
   SERIALPRINTLN("FlaVal->getButtonsDimmer()");
 
   return NIBLE_STEP_PERCENTAGE[(light_dimmer)ByteManipulation::getSecondNibbleOnByte(
-      this->FlashMemmory->readByte(
+      this->FlashMemory->readByte(
           EEPROM_ADDRESS_BUTTONS_LED_DIMMER))];
 }
 
@@ -207,10 +207,10 @@ IPAddress *FlashValues::getConnectionIp()
   SERIALPRINTLN("FlaVal->getConnectionIp()");
 
   return new IPAddress(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_IP_1),
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_IP_2),
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_IP_3),
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_IP_4));
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_IP_1),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_IP_2),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_IP_3),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_IP_4));
 }
 
 /**
@@ -222,8 +222,8 @@ uint16_t FlashValues::getConnectionPort()
 {
   SERIALPRINTLN("FlaVal->getConnectionPort()");
 
-  return 0xFFFF & (this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_PORT_1) << 8) &
-         this->FlashMemmory->readByte(EEPROM_ADDRESS_CONNECTION_PORT_2);
+  return 0xFFFF & (this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_PORT_1) << 8) &
+         this->FlashMemory->readByte(EEPROM_ADDRESS_CONNECTION_PORT_2);
 }
 
 /**
@@ -235,7 +235,7 @@ String FlashValues::getWifiSSID()
 {
   SERIALPRINTLN("FlaVal->getWifiSSID()");
 
-  return this->FlashMemmory->readString(EEPROM_ADDRESS_WIFI_SSID, 50);
+  return this->FlashMemory->readString(EEPROM_ADDRESS_WIFI_SSID, 50);
 }
 
 /**
@@ -247,7 +247,7 @@ String FlashValues::getWifiPassword()
 {
   SERIALPRINTLN("FlaVal->getWifiPassword()");
 
-  return this->FlashMemmory->readString(EEPROM_ADDRESS_WIFI_PASSWORD, 50);
+  return this->FlashMemory->readString(EEPROM_ADDRESS_WIFI_PASSWORD, 50);
 }
 
 /**
@@ -263,27 +263,27 @@ String FlashValues::getButtonAlias(button_index buttonIndex)
 
   if (buttonIndex == 0)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_1_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_1_ALIAS, 20);
   }
   else if (buttonIndex == 1)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_2_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_2_ALIAS, 20);
   }
   else if (buttonIndex == 2)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_3_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_3_ALIAS, 20);
   }
   else if (buttonIndex == 3)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_4_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_4_ALIAS, 20);
   }
   else if (buttonIndex == 4)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_5_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_5_ALIAS, 20);
   }
   else if (buttonIndex == 5)
   {
-    return this->FlashMemmory->readString(EEPROM_ADDRESS_BUTTON_6_ALIAS, 20);
+    return this->FlashMemory->readString(EEPROM_ADDRESS_BUTTON_6_ALIAS, 20);
   }
 
   return String("unknown");
@@ -298,7 +298,7 @@ String FlashValues::getRoomAlias()
 {
   SERIALPRINTLN("FlaVal->getRoomAlias()");
 
-  return this->FlashMemmory->readString(EEPROM_ADDRESS_ROOM_ALIAS, 20);
+  return this->FlashMemory->readString(EEPROM_ADDRESS_ROOM_ALIAS, 20);
 }
 
 /**
@@ -314,27 +314,27 @@ uint8_t FlashValues::getButtonRemoteAddress(button_index buttonIndex)
 
   if (buttonIndex == 0)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_1);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_1);
   }
   else if (buttonIndex == 1)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_2);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_2);
   }
   else if (buttonIndex == 2)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_3);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_3);
   }
   else if (buttonIndex == 3)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_4);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_4);
   }
   else if (buttonIndex == 4)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_5);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_5);
   }
   else if (buttonIndex == 5)
   {
-    return this->FlashMemmory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_6);
+    return this->FlashMemory->readByte(EEPROM_ADDRESS_REMOTE_ADDRESS_6);
   }
 
   return 0x00;
@@ -349,7 +349,7 @@ uint8_t FlashValues::getMyAddress()
 {
   SERIALPRINTLN("FlaVal->getMyAddress()");
 
-  return this->FlashMemmory->readByte(EEPROM_ADDRESS_DEVICE_ADDRESS);
+  return this->FlashMemory->readByte(EEPROM_ADDRESS_DEVICE_ADDRESS);
 }
 
 /**
@@ -362,7 +362,7 @@ uint16_t FlashValues::getSystemLockTimeout()
   SERIALPRINTLN("FlaVal->getSystemLockTimeout()");
 
   return NIBLE_STEP_SECONDS[(seconds_step)ByteManipulation::getFirstNibbleOnByte(
-      this->FlashMemmory->readByte(
+      this->FlashMemory->readByte(
           EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT))];
 }
 
@@ -376,7 +376,7 @@ uint16_t FlashValues::getSytemLockPeriod()
   SERIALPRINTLN("FlaVal->getSytemLockPeriod()");
 
   return NIBLE_STEP_SECONDS[(seconds_step)ByteManipulation::getSecondNibbleOnByte(
-      this->FlashMemmory->readByte(
+      this->FlashMemory->readByte(
           EEPROM_ADDRESS_SYSTEM_LOCK_PERIOD))];
 }
 
@@ -390,7 +390,7 @@ bit_t FlashValues::getSystemAutoLock()
   SERIALPRINTLN("FlaVal->getSystemAutoLock()");
 
   return ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
       EEPROM_ADDRESS_CONFIG_AREA_2_AUTO_LOCK);
 }
 
@@ -399,46 +399,46 @@ bit_t FlashValues::getSystemAutoLock()
  *
  * @return bit_t
  */
-bit_t FlashValues::getButtonHandleHold(button_index buttonIndex)
+bit_t FlashValues::getButtonHandleLock(button_index buttonIndex)
 {
-  SERIALPRINT("FlaVal->getButtonHandleHold(");
+  SERIALPRINT("FlaVal->getButtonHandleLock(");
   SERIALPRINT(buttonIndex);
   SERIALPRINTLN(")");
 
   if (buttonIndex == 0)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_1);
   }
   else if (buttonIndex == 1)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_2);
   }
   else if (buttonIndex == 2)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_3);
   }
   else if (buttonIndex == 3)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_4);
   }
   else if (buttonIndex == 4)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_5);
   }
   else if (buttonIndex == 5)
   {
     return ByteManipulation::getBitOnByte(
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
+        this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_2),
         EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_6);
   }
 
@@ -458,7 +458,7 @@ bit_t FlashValues::getEraseFlashBit()
   SERIALPRINTLN("FlaVal->getEraseFlashBit()");
 
   return ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
       EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH);
 }
 
@@ -475,7 +475,7 @@ bit_t FlashValues::getDefaultConfigFlashBit()
   SERIALPRINTLN("FlaVal->getDefaultConfigFlashBit()");
 
   return ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
       EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS);
 }
 
@@ -491,7 +491,7 @@ flash_value_result FlashValues::setWifiMode(wifi_mode mode)
   SERIALPRINT(mode, BIN);
   SERIALPRINTLN(")");
 
-  return this->FlashMemmory->writeBit(
+  return this->FlashMemory->writeBit(
              EEPROM_ADDRESS_CONFIG_AREA_1,
              EEPROM_ADDRESS_CONFIG_AREA_1_WIFI_MODE,
              mode)
@@ -511,7 +511,7 @@ flash_value_result FlashValues::setButtonLogicLevel(button_logic_level logicLeve
   SERIALPRINT(logicLevel, BIN);
   SERIALPRINTLN(")");
 
-  return this->FlashMemmory->writeBit(
+  return this->FlashMemory->writeBit(
              EEPROM_ADDRESS_CONFIG_AREA_1,
              EEPROM_ADDRESS_CONFIG_AREA_1_BUTTON_LOGIC_LEVEL,
              logicLevel)
@@ -532,10 +532,10 @@ flash_value_result FlashValues::setButtonHoldTimeout(seconds_step time)
   SERIALPRINTLN(")");
 
   uint8_t flashByte =
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
+      this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
   ByteManipulation::setFirstNibbleOnByte(&flashByte, time);
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_BUTTON_HOLD_TIME,
              flashByte)
              ? flash_value_result::OK
@@ -555,10 +555,10 @@ flash_value_result FlashValues::setButtonHoldPeriod(seconds_step time)
   SERIALPRINTLN(")");
 
   uint8_t flashByte =
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
+      this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_HOLD_TIME);
   ByteManipulation::setSecondNibbleOnByte(&flashByte, time);
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_BUTTON_HOLD_TIME,
              flashByte)
              ? flash_value_result::OK
@@ -585,60 +585,60 @@ flash_value_result FlashValues::setButtonMode(button_index buttonIndex, button_m
   if (buttonIndex == 0)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_1_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_1_MODE);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_1_MODE,
         flashByte);
   }
   else if (buttonIndex == 1)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_2_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_2_MODE);
     ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_2_MODE,
         flashByte);
   }
   else if (buttonIndex == 2)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_3_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_3_MODE);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_3_MODE,
         flashByte);
   }
   else if (buttonIndex == 3)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_4_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_4_MODE);
     ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_4_MODE,
         flashByte);
   }
   else if (buttonIndex == 4)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_5_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_5_MODE);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_5_MODE,
         flashByte);
   }
   else if (buttonIndex == 5)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTON_6_MODE);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTON_6_MODE);
     ByteManipulation::setSecondNibbleOnByte(&flashByte, mode);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_BUTTON_6_MODE,
         flashByte);
   }
@@ -666,50 +666,50 @@ flash_value_result FlashValues::setOutputDimmer(output_index outputIndex, light_
   if (outputIndex == 0)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_1_DIMMER);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_OUTPUT_1_DIMMER);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_OUTPUT_1_DIMMER,
         flashByte);
   }
   else if (outputIndex == 1)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_2_DIMMER);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_OUTPUT_2_DIMMER);
     ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_OUTPUT_2_DIMMER,
         flashByte);
   }
   else if (outputIndex == 2)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_3_DIMMER);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_OUTPUT_3_DIMMER);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_OUTPUT_3_DIMMER,
         flashByte);
   }
   else if (outputIndex == 3)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_4_DIMMER);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_OUTPUT_4_DIMMER);
     ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_OUTPUT_4_DIMMER,
         flashByte);
   }
   else if (outputIndex == 4)
   {
     uint8_t flashByte =
-        this->FlashMemmory->readByte(EEPROM_ADDRESS_OUTPUT_5_DIMMER);
+        this->FlashMemory->readByte(EEPROM_ADDRESS_OUTPUT_5_DIMMER);
     ByteManipulation::setFirstNibbleOnByte(&flashByte, dimmer);
 
-    writeResult = this->FlashMemmory->writeByte(
+    writeResult = this->FlashMemory->writeByte(
         EEPROM_ADDRESS_OUTPUT_5_DIMMER,
         flashByte);
   }
@@ -729,10 +729,10 @@ flash_value_result FlashValues::setButtonsDimmer(light_dimmer dimmer)
   SERIALPRINTLN(")");
 
   uint8_t flashByte =
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_BUTTONS_LED_DIMMER);
+      this->FlashMemory->readByte(EEPROM_ADDRESS_BUTTONS_LED_DIMMER);
   ByteManipulation::setSecondNibbleOnByte(&flashByte, dimmer);
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_BUTTONS_LED_DIMMER,
              flashByte)
              ? flash_value_result::OK
@@ -760,18 +760,18 @@ flash_value_result FlashValues::setConnectionIp(uint8_t ip4_addr1, uint8_t ip4_a
   SERIALPRINT(ip4_addr4, DEC);
   SERIALPRINTLN(")");
 
-  this->FlashMemmory->pauseWrite();
+  this->FlashMemory->pauseWrite();
 
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_IP_1, ip4_addr1);
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_IP_2, ip4_addr2);
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_IP_3, ip4_addr3);
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_IP_4, ip4_addr4);
 
-  return this->FlashMemmory->resumeWrite()
+  return this->FlashMemory->resumeWrite()
              ? flash_value_result::OK
              : flash_value_result::ERROR;
 }
@@ -788,16 +788,16 @@ flash_value_result FlashValues::setConnectionPort(uint16_t port)
   SERIALPRINT(port, DEC);
   SERIALPRINTLN(")");
 
-  this->FlashMemmory->pauseWrite();
+  this->FlashMemory->pauseWrite();
 
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_PORT_1,
       (uint8_t)(port >> 8));
-  (void)this->FlashMemmory->writeByte(
+  (void)this->FlashMemory->writeByte(
       EEPROM_ADDRESS_CONNECTION_PORT_2,
       (uint8_t)(port & 0x00FF));
 
-  return this->FlashMemmory->resumeWrite()
+  return this->FlashMemory->resumeWrite()
              ? flash_value_result::OK
              : flash_value_result::ERROR;
 }
@@ -820,7 +820,7 @@ flash_value_result FlashValues::setWifiSSID(String ssid)
     return flash_value_result::WRONG_STRING_SIZE;
   }
 
-  return this->FlashMemmory->writeString(
+  return this->FlashMemory->writeString(
              EEPROM_ADDRESS_WIFI_SSID, ssid, size)
              ? flash_value_result::OK
              : flash_value_result::ERROR;
@@ -844,7 +844,7 @@ flash_value_result FlashValues::setWifiPassword(String password)
     return flash_value_result::WRONG_STRING_SIZE;
   }
 
-  return this->FlashMemmory->writeString(
+  return this->FlashMemory->writeString(
              EEPROM_ADDRESS_WIFI_PASSWORD, password, size)
              ? flash_value_result::OK
              : flash_value_result::ERROR;
@@ -873,42 +873,42 @@ flash_value_result FlashValues::setButtonAlias(button_index buttonIndex, String 
 
   if (buttonIndex == 0)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_1_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 1)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_2_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 2)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_3_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 3)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_4_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 4)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_5_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 5)
   {
-    return this->FlashMemmory->writeString(
+    return this->FlashMemory->writeString(
                EEPROM_ADDRESS_BUTTON_6_ALIAS, name, size)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
@@ -935,7 +935,7 @@ flash_value_result FlashValues::setRoomAlias(String name)
     return flash_value_result::WRONG_STRING_SIZE;
   }
 
-  return this->FlashMemmory->writeString(
+  return this->FlashMemory->writeString(
              EEPROM_ADDRESS_ROOM_ALIAS, name, size)
              ? flash_value_result::OK
              : flash_value_result::ERROR;
@@ -958,42 +958,42 @@ flash_value_result FlashValues::setButtonRemoteAddress(button_index buttonIndex,
 
   if (buttonIndex == 0)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_1, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 1)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_2, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 2)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_3, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 3)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_4, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 4)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_5, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
   }
   else if (buttonIndex == 5)
   {
-    return this->FlashMemmory->writeByte(
+    return this->FlashMemory->writeByte(
                EEPROM_ADDRESS_REMOTE_ADDRESS_6, address)
                ? flash_value_result::OK
                : flash_value_result::ERROR;
@@ -1016,7 +1016,7 @@ flash_value_result FlashValues::setMyAddress(uint8_t address)
   SERIALPRINT(address, HEX);
   SERIALPRINTLN(")");
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_DEVICE_ADDRESS, address)
              ? flash_value_result::OK
              : flash_value_result::ERROR;
@@ -1035,10 +1035,10 @@ flash_value_result FlashValues::setSystemLockTimeout(seconds_step time)
   SERIALPRINTLN(")");
 
   uint8_t flashByte =
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT);
+      this->FlashMemory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT);
   ByteManipulation::setFirstNibbleOnByte(&flashByte, time);
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_SYSTEM_LOCK_TIMEOUT,
              flashByte)
              ? flash_value_result::OK
@@ -1058,10 +1058,10 @@ flash_value_result FlashValues::setSytemLockPeriod(seconds_step time)
   SERIALPRINTLN(")");
 
   uint8_t flashByte =
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_PERIOD);
+      this->FlashMemory->readByte(EEPROM_ADDRESS_SYSTEM_LOCK_PERIOD);
   ByteManipulation::setSecondNibbleOnByte(&flashByte, time);
 
-  return this->FlashMemmory->writeByte(
+  return this->FlashMemory->writeByte(
              EEPROM_ADDRESS_BUTTON_HOLD_TIME,
              flashByte)
              ? flash_value_result::OK
@@ -1080,7 +1080,7 @@ flash_value_result FlashValues::setSystemAutoLock(system_auto_lock autoLock)
   SERIALPRINT(autoLock, BIN);
   SERIALPRINTLN(")");
 
-  return this->FlashMemmory->writeBit(
+  return this->FlashMemory->writeBit(
              EEPROM_ADDRESS_CONFIG_AREA_2,
              EEPROM_ADDRESS_CONFIG_AREA_2_AUTO_LOCK,
              autoLock)
@@ -1095,9 +1095,9 @@ flash_value_result FlashValues::setSystemAutoLock(system_auto_lock autoLock)
  * @param hold
  * @return flash_value_result
  */
-flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bit_t hold)
+flash_value_result FlashValues::setButtonHandleLock(button_index buttonIndex, bit_t hold)
 {
-  SERIALPRINT("FlaVal->setButtonHandleHold(");
+  SERIALPRINT("FlaVal->setButtonHandleLock(");
   SERIALPRINT(buttonIndex);
   SERIALPRINT("->");
   SERIALPRINT(hold, BIN);
@@ -1107,7 +1107,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
 
   if (buttonIndex == 0)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_1,
                hold)
@@ -1116,7 +1116,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
   }
   else if (buttonIndex == 1)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_2,
                hold)
@@ -1125,7 +1125,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
   }
   else if (buttonIndex == 2)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_3,
                hold)
@@ -1134,7 +1134,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
   }
   else if (buttonIndex == 3)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_4,
                hold)
@@ -1143,7 +1143,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
   }
   else if (buttonIndex == 4)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_5,
                hold)
@@ -1152,7 +1152,7 @@ flash_value_result FlashValues::setButtonHandleHold(button_index buttonIndex, bi
   }
   else if (buttonIndex == 5)
   {
-    return this->FlashMemmory->writeBit(
+    return this->FlashMemory->writeBit(
                EEPROM_ADDRESS_CONFIG_AREA_2,
                EEPROM_ADDRESS_CONFIG_AREA_2_LOCK_BUTTON_6,
                hold)
@@ -1179,7 +1179,7 @@ flash_value_result FlashValues::setEraseFlashBit(bit_t erase)
   SERIALPRINTLN(")");
 
   bit_t current = ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
       EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH);
 
   if (current == erase)
@@ -1187,7 +1187,7 @@ flash_value_result FlashValues::setEraseFlashBit(bit_t erase)
     return flash_value_result::SAME_VALUE_NOT_ALLOWED;
   }
 
-  return this->FlashMemmory->writeBit(
+  return this->FlashMemory->writeBit(
              EEPROM_ADDRESS_CONFIG_AREA_3,
              EEPROM_ADDRESS_CONFIG_AREA_3_ERASE_FLASH,
              erase)
@@ -1211,7 +1211,7 @@ flash_value_result FlashValues::setDefaultConfigFlashBit(bit_t config)
   SERIALPRINTLN(")");
 
   bit_t current = ByteManipulation::getBitOnByte(
-      this->FlashMemmory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
+      this->FlashMemory->readByte(EEPROM_ADDRESS_CONFIG_AREA_3),
       EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS);
 
   if (current == config)
@@ -1219,7 +1219,7 @@ flash_value_result FlashValues::setDefaultConfigFlashBit(bit_t config)
     return flash_value_result::SAME_VALUE_NOT_ALLOWED;
   }
 
-  return this->FlashMemmory->writeBit(
+  return this->FlashMemory->writeBit(
              EEPROM_ADDRESS_CONFIG_AREA_3,
              EEPROM_ADDRESS_CONFIG_AREA_3_FLASH_DEFAULTS,
              config)
@@ -1239,7 +1239,7 @@ bool FlashValues::restoreDefaults()
 
   bool flashWriteResult = false;
 
-  this->FlashMemmory->pauseWrite();
+  this->FlashMemory->pauseWrite();
 
   /**
    * Set all values by calling their setters
@@ -1274,7 +1274,9 @@ bool FlashValues::restoreDefaults()
 
   (void)this->setSytemLockPeriod((seconds_step)FLASH_DEFAULT_AUTO_LOCK_PERIOD);
 
-  (void)this->setSystemAutoLock(system_auto_lock::ENABLED);
+  (void)this->setSystemAutoLock((system_auto_lock)ByteManipulation::getBitOnByte(
+      FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
+      EEPROM_ADDRESS_CONFIG_AREA_2_AUTO_LOCK));
 
   /**
    * Set outputs default values
@@ -1337,7 +1339,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_1,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_1,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1357,7 +1359,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_2,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_2,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1377,7 +1379,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_3,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_3,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1397,7 +1399,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_4,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_4,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1417,7 +1419,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_5,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_5,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1437,7 +1439,7 @@ bool FlashValues::restoreDefaults()
           button_index::BUTTON_6,
           FLASH_DEFAULT_REMOTE_ADDRESS);
 
-      (void)this->setButtonHandleHold(
+      (void)this->setButtonHandleLock(
           button_index::BUTTON_6,
           ByteManipulation::getBitOnByte(
               FLASH_DEFAULT_SYSTEM_LOCK_CONFIG,
@@ -1445,7 +1447,7 @@ bool FlashValues::restoreDefaults()
     }
   }
 
-  flashWriteResult = this->FlashMemmory->resumeWrite();
+  flashWriteResult = this->FlashMemory->resumeWrite();
 
   if (flashWriteResult)
     SERIALPRINTLN(" - OK");
@@ -1467,10 +1469,10 @@ bool FlashValues::restoreDefaults()
  */
 bool FlashValues::validateFlash()
 {
-  if (!this->FlashMemmory->isCrcValid() ||
+  if (!this->FlashMemory->isCrcValid() ||
       this->getEraseFlashBit() != MANUAL_SET_BIT_TO_ERASE_FLASH)
   {
-    this->FlashMemmory->erase();
+    this->FlashMemory->erase();
     this->setFlashBitWriteControllers(false);
     this->restoreDefaults();
     return false;
@@ -1492,10 +1494,10 @@ bool FlashValues::validateFlash()
  */
 void FlashValues::setFlashBitWriteControllers(bool resumeWrite)
 {
-  this->FlashMemmory->pauseWrite();
+  this->FlashMemory->pauseWrite();
   this->setEraseFlashBit(MANUAL_SET_BIT_TO_ERASE_FLASH);
   this->setDefaultConfigFlashBit(MANUAL_SET_BIT_TO_ERASE_FLASH);
 
   if (resumeWrite)
-    (void)this->FlashMemmory->resumeWrite();
+    (void)this->FlashMemory->resumeWrite();
 }

@@ -172,7 +172,7 @@ public:
 
   bit_t getSystemAutoLock();
 
-  bit_t getButtonHandleHold(button_index buttonIndex);
+  bit_t getButtonHandleLock(button_index buttonIndex);
 
   bit_t getEraseFlashBit();
 
@@ -218,7 +218,7 @@ public:
 
   flash_value_result setSystemAutoLock(system_auto_lock autoLock);
 
-  flash_value_result setButtonHandleHold(button_index buttonIndex, bit_t hold);
+  flash_value_result setButtonHandleLock(button_index buttonIndex, bit_t hold);
 
   flash_value_result setEraseFlashBit(bit_t erase);
 
@@ -233,7 +233,7 @@ public:
   bool validateFlash();
 
 private:
-  Flash *FlashMemmory;
+  Flash *FlashMemory;
 
   void setFlashBitWriteControllers(bool resumeWrite = true);
 };
