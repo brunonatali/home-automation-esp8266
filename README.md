@@ -6,6 +6,7 @@ Essa branch foi derivada da MASTER, mas teve sua função de dimmer do led remov
 
 - Toque fantasma (touch aciona sozinho)
 - LEDs acendem ao reinciar dispositivo (queda/retorno energia elétrica)
+- Acionamento não desejado por proximidade (encostar sem querer)
 
 Com isso para acionar as saídas agora é preciso manter o botão pressionado por 1 segundo.
 
