@@ -1,7 +1,7 @@
 /**
  * EEPROM (Flash) manager.
  * Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
- * 
+ *
  * License (MIT license):
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
-*/
+ */
 
 #ifndef FlashMan_h
 #define FlashMan_h
@@ -64,7 +64,7 @@
   Button hold timeout
   Indicates time in miliseconds that will trigger button is holding
 */
-#define BUTTON_HOLD_TIMEOUT 2 // 2 sec
+#define BUTTON_HOLD_TIMEOUT 1 // 2 sec
 
 /*
   Button hold period
@@ -83,48 +83,48 @@
 
 class FlashMan
 {
-  public:
-    FlashMan();
-    bool setSsid(String ssid, bool setCrc = true);
-    bool setWifiPassword(String pass, bool setCrc = true);
-    bool setButtonHoldTO(uint8_t seconds, bool setCrc = true);
-    bool setButtonHoldPeriod(uint8_t seconds, bool setCrc = true);
-    bool setWifiMode(uint8_t mode, bool setCrc = true);
-    bool setButtonLogicLevel(uint8_t level, bool setCrc = true);
-    bool setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc = true);
-    bool setButtonDimmer(uint8_t button, uint8_t value, bool setCrc = true);
+public:
+  FlashMan();
+  bool setSsid(String ssid, bool setCrc = true);
+  bool setWifiPassword(String pass, bool setCrc = true);
+  bool setButtonHoldTO(uint8_t seconds, bool setCrc = true);
+  bool setButtonHoldPeriod(uint8_t seconds, bool setCrc = true);
+  bool setWifiMode(uint8_t mode, bool setCrc = true);
+  bool setButtonLogicLevel(uint8_t level, bool setCrc = true);
+  bool setButtonLightMode(uint8_t button, uint8_t mode, bool setCrc = true);
+  bool setButtonDimmer(uint8_t button, uint8_t value, bool setCrc = true);
 
-    String getSsid(void);
-    String getWifiPass(void);
-    uint8_t getButtonHoldTO(bool force = false);
-    uint8_t getButtonHoldPeriod(bool force = false);
-    uint8_t getWifiMode(bool force = false);
-    uint8_t getButtonLogicLevel(bool force = false);
-    uint8_t getButtonLightMode(uint8_t button, bool force = false);
-    uint8_t getButtonDimmer(uint8_t button, bool force = false);
+  String getSsid(void);
+  String getWifiPass(void);
+  uint8_t getButtonHoldTO(bool force = false);
+  uint8_t getButtonHoldPeriod(bool force = false);
+  uint8_t getWifiMode(bool force = false);
+  uint8_t getButtonLogicLevel(bool force = false);
+  uint8_t getButtonLightMode(uint8_t button, bool force = false);
+  uint8_t getButtonDimmer(uint8_t button, bool force = false);
 
-    static bool writeString(String str, int p1Index, int p2Index, const int size, bool setCrc = true);
-    static bool writeByte(uint8_t byte, int p1Index, int p2Index, bool setCrc = true);
-    static bool writeBit(uint8_t *boolConfigs, uint8_t bit, uint8_t byteIndex, int p1Index, int p2Index, bool setCrc = true);
+  static bool writeString(String str, int p1Index, int p2Index, const int size, bool setCrc = true);
+  static bool writeByte(uint8_t byte, int p1Index, int p2Index, bool setCrc = true);
+  static bool writeBit(uint8_t *boolConfigs, uint8_t bit, uint8_t byteIndex, int p1Index, int p2Index, bool setCrc = true);
 
-    static String getString(int index, uint8_t size);
-    static char getByte(int index);
+  static String getString(int index, uint8_t size);
+  static char getByte(int index);
 
-    uint8_t boolConfigs;
+  uint8_t boolConfigs;
 
-    private:
-    String ssid;
-    String wifiPass;
-    uint8_t wifiMode;
-    uint8_t btnLogicLevel;
-    uint8_t btnHoldTimeOut;
-    uint8_t btnHoldPeriod;
-    uint8_t btnMode[6];
-    uint8_t btnDimmer[6];
+private:
+  String ssid;
+  String wifiPass;
+  uint8_t wifiMode;
+  uint8_t btnLogicLevel;
+  uint8_t btnHoldTimeOut;
+  uint8_t btnHoldPeriod;
+  uint8_t btnMode[6];
+  uint8_t btnDimmer[6];
 
-    static bool copyFlashPartition(uint8_t from, bool setCrc = true);
-    static uint32_t calcFlashCrc(uint8_t partition);
-    static bool setFlashCrc(uint8_t partition);
-    static uint32_t getFlashCrc(uint8_t partition);
+  static bool copyFlashPartition(uint8_t from, bool setCrc = true);
+  static uint32_t calcFlashCrc(uint8_t partition);
+  static bool setFlashCrc(uint8_t partition);
+  static uint32_t getFlashCrc(uint8_t partition);
 };
 #endif

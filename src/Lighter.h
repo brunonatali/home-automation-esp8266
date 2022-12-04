@@ -1,7 +1,7 @@
 /**
  * Light on / off manager
  * Copyright (c) 2021 Bruno Natali - b010010010n@gmail.com
- * 
+ *
  * License (MIT license):
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,34 +20,39 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
-*/
+ */
 
 #ifndef Lighter_h
 #define Lighter_h
 
 #include <Arduino.h>
 
+typedef enum light_state
+{
+  OFF,
+  ON
+} light_state;
+
 class Lighter
 {
-  protected:
-    bool _buttonHolded = false;
-    
-  public:
-    Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true);
-    void on(void);
-    void off(void);
-    bool dimmer(int value);
-    bool setDimmable(bool dimm);
-    int getValue(void);
-    bool getDimmable(void);
-    bool getLockDimm(void);
-    
-  private:
-    int _pin;
-    int _onLevel;
-    int _offLevel;
-    int _value;
-    bool _dimmable;
-    bool _lockDimm; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
+protected:
+  bool _buttonHolded = false;
+
+public:
+  Lighter(int pin, int onLevel, int offLevel, bool dimmable, bool lockDimm = true);
+  void on(void);
+  void off(void);
+  bool setDimmable(bool dimm);
+  int getValue(void);
+  bool getDimmable(void);
+  bool getLockDimm(void);
+
+private:
+  int _pin;
+  int _onLevel;
+  int _offLevel;
+  light_state _value;
+  bool _dimmable;
+  bool _lockDimm; /* lock dimmable state, prevent non dimmable IO to be configured as dimmable */
 };
 #endif

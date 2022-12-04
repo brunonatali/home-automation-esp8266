@@ -1,42 +1,35 @@
 #include "TouchButtonModule.h"
 
 TouchButtonModule::TouchButtonModule(
-  int pin, 
-  int buttonNumber, 
-  bool buttonDefLevel, 
-  int buttonHoldTimeOut, 
-  int buttonHoldPeriod
-) {
+    int pin,
+    int buttonNumber,
+    bool buttonDefLevel,
+    int buttonHoldTimeOut,
+    int buttonHoldPeriod)
+{
   _pin = pin;
   _buttonNumber = buttonNumber;
   _buttonHoldTimeOut = buttonHoldTimeOut * 1000;
   _defaultLevel = buttonDefLevel;
   _holdPeriod = buttonHoldPeriod * 1000;
 
-  // Satart bouce with 3 cycles to unbounce (unhold)
-  bounceFx = new BounceEffect(pin, INPUT, BOUNCE_EFFECT_MID, 3, buttonDefLevel); 
-
-  // bounceFx->setUnholdFunction(reinterpret_cast<unholdcallback*>(&TouchButtonModule::buttonUnholdCallback), static_cast<void*>(this));
-
-  bounceFx->unholdCallback = reinterpret_cast<unholdcallback>(TouchButtonModule::buttonUnholdCallback);
-  bounceFx->unholdCallbackArg = static_cast<void*>(this);
-
   // Declare default callbacks
   clickCallback = &GenericCallbacks::defaultCallbackReturnVoidArgSelf;
   clickCallbackArg = this;
-  holdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
-  holdCallbackArg = this;
-  unholdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
-  unholdCallbackArg = this;
-  
+  // holdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
+  // holdCallbackArg = this;
+  // unholdCallback = &GenericCallbacks::defaultCallbackReturnFalseArgSelf;
+  // unholdCallbackArg = this;
+
   pinMode(pin, INPUT);
-  os_timer_setfn(&_buttonHoldTimer, reinterpret_cast<ETSTimerFunc*>(&TouchButtonModule::buttonTimerCallback), reinterpret_cast<void*>(this));
+  os_timer_setfn(
+      &_buttonHoldTimer,
+      reinterpret_cast<ETSTimerFunc *>(&TouchButtonModule::buttonTimerCallback),
+      reinterpret_cast<void *>(this));
   this->enable();
 
-#if TOUCH_MODULE_DEBUG
-  Serial.print("criado botao: ");
-  Serial.println(_holdPeriod);
-#endif
+  SERIALPRINT("new btn: ");
+  SERIALPRINTLN(_holdPeriod);
 }
 
 TouchButtonModule::~TouchButtonModule(void)
@@ -44,134 +37,104 @@ TouchButtonModule::~TouchButtonModule(void)
   this->disable();
 }
 
-void TouchButtonModule::setClickFunction(clickcallback *callback, void *arg)
+IRAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule *self)
 {
-  clickCallback = *callback;
-  clickCallbackArg = arg;
-}
+  SERIALPRINT("btn change: ");
 
-void TouchButtonModule::setHoldFunction(holdcallback *callback, void *arg)
-{
-  holdCallback = *callback;
-  holdCallbackArg = arg;
-}
-
-void TouchButtonModule::setUnholdFunction(unholdcallback *callback, void *arg)
-{
-  unholdCallback = *callback;
-  unholdCallbackArg = arg;
-}
-
-ICACHE_RAM_ATTR bool TouchButtonModule::buttonUnholdCallback(TouchButtonModule* self, uint16_t number)
-{
-  self->bounceFx->stop();
-  self->enable();
-  self->_buttonHolded = false;
-#if TOUCH_MODULE_DEBUG
-  Serial.println("passou funcao");
-#endif
-  self->unholdCallback(self->unholdCallbackArg, self->_buttonNumber);
-  return true;
-}
-
-ICACHE_RAM_ATTR void TouchButtonModule::buttonChangeCallback(TouchButtonModule* self)
-{
-#if TOUCH_MODULE_DEBUG
-  Serial.print("botao change:");
-#endif
   if (!self->_enabled)
+  {
+    SERIALPRINTLN("disabled");
     return;
-#if TOUCH_MODULE_DEBUG
-  Serial.print(self->_pin);
-#endif
+  }
+
+  SERIALPRINT(self->_pin);
 
   int currentBtnState = digitalRead(self->_pin);
-#if TOUCH_MODULE_DEBUG
-  Serial.print(",");
-  Serial.print(currentBtnState);
-#endif
 
-  if (currentBtnState != self->_defaultLevel) { // Button touched
-#if TOUCH_MODULE_DEBUG
-    Serial.println("touched");
-#endif
+  SERIALPRINT(",");
+  SERIALPRINT(currentBtnState);
+
+  if (currentBtnState != self->_defaultLevel)
+  { // Button touched
+    SERIALPRINTLN("touch");
+
     os_timer_arm(&self->_buttonHoldTimer, self->_buttonHoldTimeOut, false); // Trigger hold timer once
-  } else { // Button untouch -> release
-#if TOUCH_MODULE_DEBUG
-    Serial.println("un-touched");
-#endif
-    if (!self->_buttonHolded) {
+  }
+  else
+  { // Button untouch -> release
+    SERIALPRINTLN("un-touch");
+
+    /* BUTTON CLICK WAS DISABLED, CLICKS MUST BE TRIGGERED BY HOLD
+    if (!self->_buttonHolded)
+    {
       // --->> trigger click
       self->clickCallback(self->clickCallbackArg, self->_buttonNumber);
     }
-    
+    */
+
     os_timer_disarm(&self->_buttonHoldTimer);
   }
-  
+
   self->_lastState = currentBtnState;
 }
 
-ICACHE_RAM_ATTR void TouchButtonModule::buttonTimerCallback(TouchButtonModule* self)
+IRAM_ATTR void TouchButtonModule::buttonTimerCallback(TouchButtonModule *self)
 {
-  if (self->_enabled) {
-    self->_buttonHolded = true;
-    self->disable();
-    self->bounceFx->start();
+  if (self->_enabled)
+  {
+    // self->disable();
+    os_timer_disarm(&self->_buttonHoldTimer);
 
     // ----->> trigger holded
-    (void) self->holdCallback(self->holdCallbackArg, self->_buttonNumber);
-    
-    if (self->_holdPeriod)
-      os_timer_arm(&self->_buttonHoldTimer, self->_holdPeriod, false);
-  } else if (self->_buttonHolded && self->_holdPeriod) {
-
-    // ----->> trigger unholded
-    (void) TouchButtonModule::buttonUnholdCallback(self, self->_buttonNumber);
+    // (void)self->holdCallback(self->holdCallbackArg, self->_buttonNumber);
+    (void)self->clickCallback(self->clickCallbackArg, self->_buttonNumber);
   }
 }
 
 void TouchButtonModule::enable(void)
 {
-#if TOUCH_MODULE_DEBUG
-  Serial.print("enable:");
-#endif
-  if (_enabled)
-    return;
-#if TOUCH_MODULE_DEBUG
-  Serial.println("OK");
-#endif
+  SERIALPRINT("enable: ");
 
-  // Turn on button led
-  if (_defaultLevel) {
-    digitalWrite(_pin, HIGH);
-    pinMode(_pin, INPUT);
+  if (!_enabled)
+  { // Turn on button led
+
+    if (_defaultLevel)
+    {
+      digitalWrite(_pin, HIGH);
+      pinMode(_pin, INPUT);
+    }
+
+    os_timer_disarm(&_buttonHoldTimer);
+    attachInterruptArg(
+        digitalPinToInterrupt(_pin),
+        reinterpret_cast<void (*)(void *)>(&TouchButtonModule::buttonChangeCallback),
+        this,
+        CHANGE);
+
+    _enabled = true;
   }
 
-  os_timer_disarm(&_buttonHoldTimer);
-  attachInterruptArg(digitalPinToInterrupt(_pin), reinterpret_cast<void (*)(void*)>(&TouchButtonModule::buttonChangeCallback), this, CHANGE);
-
-  _enabled = true;
+  SERIALPRINTLN("OK");
 }
 
 void TouchButtonModule::disable(void)
 {
-#if TOUCH_MODULE_DEBUG
-  Serial.print("dsabled: ");
-#endif
+  SERIALPRINT("disable: ");
+
   if (!_enabled)
-    return;
-#if TOUCH_MODULE_DEBUG
-  Serial.println("ok");
-#endif
+  {
+    detachInterrupt(_pin);
+    os_timer_disarm(&_buttonHoldTimer);
 
-  detachInterrupt(_pin);
-  os_timer_disarm(&_buttonHoldTimer);
+    // Turn off button led
+    if (_defaultLevel)
+    {
+      pinMode(_pin, OUTPUT);
+      digitalWrite(_pin, LOW);
+    }
 
-  // Turn off button led
-  if (_defaultLevel) {
-    pinMode(_pin, OUTPUT);
-    digitalWrite(_pin, LOW);
+    _enabled = false;
   }
 
-  _enabled = false;
+  SERIALPRINTLN("ok");
 }
